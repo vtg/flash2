@@ -8,14 +8,14 @@ import (
 )
 
 type Router struct {
-	routes      map[string]http.Handler
-	namedRoutes map[string]http.Handler
+	routes      map[string]*Route
+	namedRoutes map[string]*Route
 	keys        []string
 	namedKeys   []string
 }
 
 func NewRouter() *Router {
-	return &Router{namedRoutes: make(map[string]http.Handler), routes: make(map[string]http.Handler)}
+	return &Router{namedRoutes: make(map[string]*Route), routes: make(map[string]*Route)}
 }
 
 // HandleFunc registers a new route with a matcher for the URL path.
@@ -42,12 +42,12 @@ func (r *Router) NewRoute(prefix string) *Route {
 }
 
 func (r *Router) addRoute(rt *Route) {
-	r.routes[rt.prefix] = rt.handler
+	r.routes[rt.prefix] = rt
 	r.setKeys()
 }
 
 func (r *Router) addNamedRoute(rt *Route) {
-	r.namedRoutes[rt.prefix] = rt.handler
+	r.namedRoutes[rt.prefix] = rt
 	r.setNamedKeys()
 }
 
@@ -87,11 +87,11 @@ func (r *Router) matchCommon(path string) string {
 
 func (r *Router) match(path string) http.Handler {
 	if k := r.matchNamed(path); k != "" {
-		return r.namedRoutes[k]
+		return r.namedRoutes[k].handler
 	}
 
 	if k := r.matchCommon(path); k != "" {
-		return r.routes[k]
+		return r.routes[k].handler
 	}
 
 	return http.NotFoundHandler()

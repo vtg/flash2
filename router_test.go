@@ -13,11 +13,10 @@ func TestHandleFunc(t *testing.T) {
 	r := NewRouter()
 
 	r.HandleFunc("/pages", HandlerForTest)
-	assertEqual(t, 0, len(r.routes))
-	assertEqual(t, 1, len(r.namedRoutes))
+	assertEqual(t, 1, len(r.routes))
 
-	assertEqual(t, fmt.Sprint(http.NotFoundHandler()), fmt.Sprint(r.match("/pages/1")))
-	assertEqual(t, fmt.Sprint(HandlerForTest), fmt.Sprint(r.match("/pages")))
+	assertEqual(t, true, r.match("/pages/1/") == nil)
+	assertEqual(t, fmt.Sprint(HandlerForTest), fmt.Sprint(r.match("/pages/").handler))
 }
 
 func TestPathPrefix(t *testing.T) {
@@ -26,13 +25,12 @@ func TestPathPrefix(t *testing.T) {
 	p.HandleFunc("//pages2", HandlerForTest)
 	p.HandleFunc("/pages1", HandlerForTest1)
 	assertEqual(t, 2, len(r.routes))
-	assertEqual(t, 0, len(r.namedRoutes))
 
-	assertEqual(t, fmt.Sprint(http.NotFoundHandler()), fmt.Sprint(r.match("/pages1/1")))
-	assertEqual(t, fmt.Sprint(HandlerForTest1), fmt.Sprint(r.match("/api/pages1/1")))
+	assertEqual(t, true, r.match("/pages1/1") == nil)
+	assertEqual(t, fmt.Sprint(HandlerForTest1), fmt.Sprint(r.match("/api/pages1/").handler))
 
-	assertEqual(t, fmt.Sprint(http.NotFoundHandler()), fmt.Sprint(r.match("/pages2/1")))
-	assertEqual(t, fmt.Sprint(HandlerForTest), fmt.Sprint(r.match("/api/pages2/1")))
+	assertEqual(t, true, r.match("/pages2/1") == nil)
+	assertEqual(t, fmt.Sprint(HandlerForTest), fmt.Sprint(r.match("/api/pages2/").handler))
 }
 
 func TestRoute(t *testing.T) {
@@ -45,19 +43,12 @@ func TestRoute(t *testing.T) {
 
 	r.Route("/pages", c, "c")
 	assertEqual(t, 1, len(r.routes))
-	assertEqual(t, 0, len(r.namedRoutes))
-
-	assertEqual(t, "", r.matchNamed("/pages/1"))
-	assertEqual(t, "/pages", r.matchCommon("/pages/1"))
+	assertEqual(t, "/pages", r.match("/pages/1/").prefix)
 
 	p := r.PathPrefix("/api")
 	p.Route("/pages", c, "c")
 	assertEqual(t, 2, len(r.routes))
-	assertEqual(t, 0, len(r.namedRoutes))
-
-	assertEqual(t, "", r.matchNamed("/api/pages/2"))
-	assertEqual(t, "/api/pages", r.matchCommon("/api/pages/2"))
-
+	assertEqual(t, "/api/pages", r.match("/api/pages/2/").prefix)
 }
 
 type CT struct {
@@ -78,24 +69,60 @@ func TestRoutesOrder(t *testing.T) {
 	r.Route("/aaaaa", &CT{}, "c")
 	r.Route("/a/a", &CT{}, "c")
 
-	assertEqual(t, "/aa", r.matchCommon("/aa/1"))
-	assertEqual(t, "/a", r.matchNamed("/a"))
-	assertEqual(t, "/aaa", r.matchCommon("/aaa/"))
-	assertEqual(t, "/aaaa", r.matchCommon("/aaaa/22"))
-	assertEqual(t, "/a/a", r.matchCommon("/a/a/"))
+	assertEqual(t, "/aa", r.match("/aa/1/").prefix)
+	assertEqual(t, "/a", r.match("/a/").prefix)
+	assertEqual(t, "/aaa", r.match("/aaa/").prefix)
+	assertEqual(t, "/aaaa", r.match("/aaaa/22/").prefix)
+	assertEqual(t, "/a/a", r.match("/a/a/").prefix)
 }
 
-func BenchmarkMatch(b *testing.B) {
+func setBanchMatch() *Router {
 	r := NewRouter()
 	p := r.PathPrefix("/api")
-	p.HandleFunc("/pages1", HandlerForTest)
-	p.HandleFunc("/pages2", HandlerForTest)
-	p.HandleFunc("/pages3", HandlerForTest)
-	p.HandleFunc("/pages4", HandlerForTest)
-	p.HandleFunc("/pages5", HandlerForTest)
-	p.HandleFunc("/pages6", HandlerForTest)
+	p.HandleFunc("/pages1/:id", HandlerForTest)
+	p.HandleFunc("/pages2/:id", HandlerForTest)
+	p.HandleFunc("/pages3/:name/:url", HandlerForTest)
+	p.HandleFunc("/pages4/:id", HandlerForTest)
+	p.HandleFunc("/pages5/:id", HandlerForTest)
+	p.HandleFunc("/pages6/:id", HandlerForTest)
+	p.HandleFunc("/pages7/:id", HandlerForTest)
+	p.HandleFunc("/pages8/:id", HandlerForTest)
+	p.HandleFunc("/pages9/:id", HandlerForTest)
+	p.HandleFunc("/pages10/:id", HandlerForTest)
+	p.HandleFunc("/pages11/:id", HandlerForTest)
+	p.HandleFunc("/pages12/:id", HandlerForTest)
+	p.HandleFunc("/pages13/:id", HandlerForTest)
+	p.HandleFunc("/pages14/:id", HandlerForTest)
+	p.HandleFunc("/pages15/:id", HandlerForTest)
+	p.HandleFunc("/pages16/:id", HandlerForTest)
+	p.HandleFunc("/pages17/:id", HandlerForTest)
+	p.HandleFunc("/pages18/:id", HandlerForTest)
+	p.HandleFunc("/pages19/:id", HandlerForTest)
+	p.HandleFunc("/pages20/:id", HandlerForTest)
+	p.HandleFunc("/pages21/:id", HandlerForTest)
+	p.HandleFunc("/pages22/:id", HandlerForTest)
+	p.HandleFunc("/pages23/:id", HandlerForTest)
+	p.HandleFunc("/pages24/:id", HandlerForTest)
+	return r
+}
 
+func BenchmarkMatchFound1st(b *testing.B) {
+	r := setBanchMatch()
 	for n := 0; n < b.N; n++ {
-		r.match("/api/pages1/1")
+		r.match("/api/pages24/1/")
+	}
+}
+
+func BenchmarkMatchFoundLast(b *testing.B) {
+	r := setBanchMatch()
+	for n := 0; n < b.N; n++ {
+		r.match("/api/pages1/1/")
+	}
+}
+
+func BenchmarkMatchNotFound(b *testing.B) {
+	r := setBanchMatch()
+	for n := 0; n < b.N; n++ {
+		r.match("/api/pages12/1/")
 	}
 }

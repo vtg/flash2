@@ -8,14 +8,12 @@ import (
 )
 
 type Router struct {
-	routes      map[string]*Route
-	namedRoutes map[string]*Route
-	keys        []string
-	namedKeys   []string
+	routes map[string]*Route
+	keys   []string
 }
 
 func NewRouter() *Router {
-	return &Router{namedRoutes: make(map[string]*Route), routes: make(map[string]*Route)}
+	return &Router{routes: make(map[string]*Route)}
 }
 
 // HandleFunc registers a new route with a matcher for the URL path.
@@ -41,60 +39,21 @@ func (r *Router) NewRoute(prefix string) *Route {
 	return &Route{router: r, prefix: prefix}
 }
 
-func (r *Router) addRoute(rt *Route) {
-	r.routes[rt.prefix] = rt
-	r.setKeys()
-}
-
-func (r *Router) addNamedRoute(rt *Route) {
-	r.namedRoutes[rt.prefix] = rt
-	r.setNamedKeys()
-}
-
 func (r *Router) setKeys() {
-	r.keys = make([]string, len(r.routes))
 	for key := range r.routes {
 		r.keys = append(r.keys, key)
 	}
 	sort.Sort(sort.Reverse(sort.StringSlice(r.keys)))
 }
 
-func (r *Router) setNamedKeys() {
-	r.namedKeys = make([]string, len(r.namedRoutes))
-	for key := range r.namedRoutes {
-		r.namedKeys = append(r.namedKeys, key)
-	}
-	sort.Sort(sort.Reverse(sort.StringSlice(r.namedKeys)))
-}
-
-func (r *Router) matchNamed(path string) string {
-	for _, v := range r.namedKeys {
-		if v == path {
-			return v
+func (r *Router) match(path string) *Route {
+	for i := 0; i < len(r.keys); i++ {
+		if r.routes[r.keys[i]].regex.MatchString(path) {
+			return r.routes[r.keys[i]]
 		}
 	}
-	return ""
-}
 
-func (r *Router) matchCommon(path string) string {
-	for _, v := range r.keys {
-		if strings.HasPrefix(path, v) {
-			return v
-		}
-	}
-	return ""
-}
-
-func (r *Router) match(path string) http.Handler {
-	if k := r.matchNamed(path); k != "" {
-		return r.namedRoutes[k].handler
-	}
-
-	if k := r.matchCommon(path); k != "" {
-		return r.routes[k].handler
-	}
-
-	return http.NotFoundHandler()
+	return nil
 }
 
 func (r *Router) PathPrefix(s string) *Route {
@@ -103,7 +62,8 @@ func (r *Router) PathPrefix(s string) *Route {
 
 // ServeHTTP dispatches the handler registered in the matched route.
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	if p := cleanPath(req.URL.Path); p != req.URL.Path {
+	p := cleanPath(req.URL.Path)
+	if p != req.URL.Path {
 		url := *req.URL
 		url.Path = p
 		p = url.String()
@@ -113,7 +73,14 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	r.match(req.URL.Path).ServeHTTP(w, req)
+	h := http.NotFoundHandler()
+
+	rt := r.match(p)
+	if rt != nil {
+		h = rt.handler
+	}
+
+	h.ServeHTTP(w, req)
 }
 
 var meths = []string{"GET", "POST", "DELETE"}

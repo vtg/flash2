@@ -1,16 +1,24 @@
 package rapi
 
-import "net/http"
+import (
+	"net/http"
+	"regexp"
+	"strings"
+)
 
 type Route struct {
 	router  *Router
 	prefix  string
 	handler http.Handler
+	regex   *regexp.Regexp
+	parts   []string
+	params  map[string]string
+	named   bool
 }
 
 // HandleFunc setting function to handle route
 func (r *Route) HandleFunc(s string, f func(http.ResponseWriter, *http.Request)) {
-	r.NewRoute(s).HandlerFunc(f).addRoute(r.prefix == "")
+	r.NewRoute(s).HandlerFunc(f).addRoute(true)
 }
 
 // Route registers a new route with a matcher for URL path
@@ -60,11 +68,51 @@ func (r *Route) HandlerFunc(f func(http.ResponseWriter, *http.Request)) *Route {
 	return r.Handler(http.HandlerFunc(f))
 }
 
-func (r *Route) addRoute(named bool) *Route {
-	if named {
-		r.router.addNamedRoute(r)
+func (r *Route) addRoute(named bool) {
+	r.named = named
+	r.parseRegexp()
+	r.router.routes[r.prefix] = r
+	r.router.setKeys()
+}
+
+var routeRegexp = regexp.MustCompile(`:([a-z0-9-_]*)`)
+
+func (r *Route) parseRegexp() {
+	r.params = make(map[string]string)
+	s := r.prefix
+
+	parts := routeRegexp.FindAllStringSubmatch(r.prefix, -1)
+	if r.named || len(parts) > 0 {
+		r.parts = make([]string, len(parts))
+		for k, v := range parts {
+			r.parts[k] = v[1]
+			s = strings.Replace(s, ":"+v[1], `([a-zA-Z0-9-_\.]*)`, 1)
+		}
+		s = s + `/\z`
 	} else {
-		r.router.addRoute(r)
+		r.parts = []string{"id", "action"}
+		s = strings.TrimSuffix(s, "/")
+		s = s + `/([a-z0-9-_\.]*)[/]{0,1}([a-z0-9-_\.]*)[/]{0,1}\z`
 	}
-	return r
+	s = `\A` + s
+	var err error
+	r.regex, err = regexp.Compile(s)
+	if err != nil {
+		panic("Route regexp error: " + err.Error())
+	}
+}
+
+func (r *Route) match(s string) bool {
+	if !r.regex.MatchString(s) {
+		return false
+	}
+	if r.named {
+		return true
+	}
+	subs := r.regex.FindAllStringSubmatch(s, -1)
+	// fmt.Println(subs)
+	for i := 1; i < len(subs[0]); i++ {
+		r.params[r.parts[i-1]] = subs[0][i]
+	}
+	return true
 }

@@ -8,8 +8,9 @@ import (
 type Controller interface {
 	Init(w http.ResponseWriter, req *http.Request, root string, params map[string]string, extras []string)
 	QueryParam(string) string
-	SetParam(string, interface{})
-	Param(string) interface{}
+	SetVar(string, interface{})
+	Var(string) interface{}
+	Param(string) string
 	Header(string) string
 	CurrentAction() string
 	RenderJSON(code int, s JSONData)

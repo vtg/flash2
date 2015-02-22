@@ -12,11 +12,10 @@ import (
 
 // Request gathers all information about request
 type Request struct {
-	URL       URL    //storing ID and action from url
-	Root      string // default JSON root key
-	Action    string
-	params    map[string]interface{}
-	urlParams map[string]string
+	Root   string // default JSON root key
+	Action string
+	vars   map[string]interface{}
+	params map[string]string
 
 	req *http.Request
 	w   http.ResponseWriter
@@ -27,15 +26,13 @@ func (r *Request) Init(w http.ResponseWriter, req *http.Request, root string, pa
 	r.w = w
 	r.req = req
 	r.Root = root
-	r.urlParams = params
-	r.URL.ID = params["id"]
-	r.URL.Action = params["action"]
+	r.params = params
 	r.Action = r.makeAction(extras)
-	r.params = make(map[string]interface{})
+	r.vars = make(map[string]interface{})
 }
 
 func (r *Request) makeAction(extras []string) string {
-	if r.URL.ID == "" {
+	if r.params["id"] == "" {
 		switch r.req.Method {
 		case "GET":
 			return "Index"
@@ -44,12 +41,12 @@ func (r *Request) makeAction(extras []string) string {
 		}
 	}
 
-	if r.URL.Action != "" {
-		return r.req.Method + capitalize(r.URL.Action)
+	if r.params["action"] != "" {
+		return r.req.Method + capitalize(r.params["action"])
 	}
 
 	if len(extras) > 0 {
-		a := r.req.Method + capitalize(r.URL.ID)
+		a := r.req.Method + capitalize(r.params["id"])
 		for _, v := range extras {
 			if a == v {
 				return a
@@ -91,14 +88,19 @@ func (r *Request) QueryParam(s string) string {
 	return r.req.URL.Query().Get(s)
 }
 
-// SetParam set custom parameter for current request
-func (r *Request) SetParam(k string, v interface{}) {
-	r.params[k] = v
+// Param get IRL param
+func (r *Request) Param(k string) string {
+	return r.params[k]
 }
 
-// Param returns custom parameter for current request
-func (r *Request) Param(k string) interface{} {
-	return r.params[k]
+// SetVar set session variable
+func (r *Request) SetVar(k string, v interface{}) {
+	r.vars[k] = v
+}
+
+// Var returns session variable
+func (r *Request) Var(k string) interface{} {
+	return r.vars[k]
 }
 
 // Header returns request header
@@ -154,13 +156,8 @@ func (r *Request) LoadFile(field, dir string) (string, error) {
 	return handler.Filename, nil
 }
 
-// URL storing id and action from url
-type URL struct {
-	ID, Action string
-}
-
 // ID64 returns ID as int64
-func (u URL) ID64() (i int64) {
-	i, _ = strconv.ParseInt(u.ID, 10, 64)
-	return
+func (r *Request) ID64() int64 {
+	i, _ := strconv.ParseInt(r.params["id"], 10, 64)
+	return i
 }

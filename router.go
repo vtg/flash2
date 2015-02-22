@@ -3,17 +3,15 @@ package rapi
 import (
 	"net/http"
 	"reflect"
-	"sort"
 	"strings"
 )
 
 type Router struct {
-	routes map[string]*Route
-	keys   []string
+	tree *leaf
 }
 
 func NewRouter() *Router {
-	return &Router{routes: make(map[string]*Route)}
+	return &Router{tree: &leaf{leafs: make(leafs)}}
 }
 
 // HandleFunc registers a new route with a matcher for the URL path.
@@ -39,23 +37,6 @@ func (r *Router) NewRoute(prefix string) *Route {
 	return &Route{router: r, prefix: prefix}
 }
 
-func (r *Router) setKeys() {
-	for key := range r.routes {
-		r.keys = append(r.keys, key)
-	}
-	sort.Sort(sort.Reverse(sort.StringSlice(r.keys)))
-}
-
-func (r *Router) match(path string) *Route {
-	for i := 0; i < len(r.keys); i++ {
-		if r.routes[r.keys[i]].regex.MatchString(path) {
-			return r.routes[r.keys[i]]
-		}
-	}
-
-	return nil
-}
-
 func (r *Router) PathPrefix(s string) *Route {
 	return r.NewRoute(s)
 }
@@ -75,9 +56,9 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	h := http.NotFoundHandler()
 
-	rt := r.match(p)
-	if rt != nil {
-		h = rt.handler
+	match := r.tree.match(p)
+	if match.route != nil {
+		h = match.route.handler
 	}
 
 	h.ServeHTTP(w, req)

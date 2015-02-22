@@ -16,20 +16,38 @@ func (r *Route) HandleFunc(s string, f func(http.ResponseWriter, *http.Request))
 }
 
 // Route registers a new route with a matcher for URL path
+// ex:
+//    r := api.NewRouter()
+//    api = r.PathPrefix("/api/v1")
+//    api.Route("/pages/:id/comments", PageComments, AuthFunc)
+// where
+//  - PageComments is the function implementing func(*rapi.Ctx)
+//  - AuthFunc is middleware function that implements ReqFunc.
+//
+func (r *Route) Route(path string, f handlerFunc, funcs ...ReqFunc) {
+	route := r.NewRoute(path)
+	route.ctr = func(params map[string]string) http.HandlerFunc {
+		return http.HandlerFunc(handleRoute(f, params, funcs...))
+	}
+
+	route.addRoute()
+}
+
+// Resource registers a new route with a matcher for URL path
 // and registering controller handler
 // ex:
 //    r := api.NewRouter()
 //    api = r.PathPrefix("/api/v1")
-//    api.Route("/pages", &PagesController{}, "page", AuthFunc)
+//    api.Resource("/pages", &PagesController{}, "page", AuthFunc)
 // where
 //  - PagesController is the type implementing Controller
 //  - "page" is the root key for json request/response
 //  - AuthFunc is middleware function that implements ReqFunc.
 //
-func (r *Route) Route(path string, i Controller, rootKey string, funcs ...ReqFunc) {
+func (r *Route) Resource(path string, i Controller, rootKey string, funcs ...ReqFunc) {
 	route := r.NewRoute(path)
 	route.ctr = func(params map[string]string) http.HandlerFunc {
-		return http.HandlerFunc(handle(i, rootKey, params, implements(i), funcs...))
+		return http.HandlerFunc(handleResource(i, rootKey, params, implements(i), funcs...))
 	}
 
 	route.addRoute()

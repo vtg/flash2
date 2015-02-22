@@ -20,7 +20,7 @@ func (c *CT) GETCollection() {
 func TestLeafs(t *testing.T) {
 	r := NewRouter()
 	p := r.PathPrefix("/api")
-	p.Route("/pages", &CT{}, "c")
+	p.Resource("/pages", &CT{}, "c")
 
 	res := r.tree.match("/api/pages/1/active")
 	assertEqual(t, "/api/pages", res.route.prefix)
@@ -65,11 +65,11 @@ func TestRoutesOrder(t *testing.T) {
 
 	r := NewRouter()
 	r.HandleFunc("/a", HandlerForTest)
-	r.Route("/aa", &CT{}, "c")
-	r.Route("/aaa", &CT{}, "c")
-	r.Route("/aaaa", &CT{}, "c")
-	r.Route("/aaaaa", &CT{}, "c")
-	r.Route("/a/a", &CT{}, "c")
+	r.Resource("/aa", &CT{}, "c")
+	r.Resource("/aaa", &CT{}, "c")
+	r.Resource("/aaaa", &CT{}, "c")
+	r.Resource("/aaaaa", &CT{}, "c")
+	r.Resource("/a/a", &CT{}, "c")
 
 	assertEqual(t, "/aa", r.tree.match("/aa/1/").route.prefix)
 	assertEqual(t, "/a", r.tree.match("/a/").route.prefix)

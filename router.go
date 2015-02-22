@@ -22,8 +22,14 @@ func (r *Router) HandleFunc(path string, f func(http.ResponseWriter, *http.Reque
 
 // Route registers a new route with a matcher for URL path
 // and registering controller handler
-func (r *Router) Route(path string, i Controller, rootKey string, funcs ...ReqFunc) {
-	r.NewRoute("").Route(path, i, rootKey, funcs...)
+func (r *Router) Route(path string, f handlerFunc, funcs ...ReqFunc) {
+	r.NewRoute("").Route(path, f, funcs...)
+}
+
+// Resource registers a new Resource with a matcher for URL path
+// and registering controller handler
+func (r *Router) Resource(path string, i Controller, rootKey string, funcs ...ReqFunc) {
+	r.NewRoute("").Resource(path, i, rootKey, funcs...)
 }
 
 // HandlePrefix registers a new handler to serve prefix

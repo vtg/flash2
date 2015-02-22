@@ -77,7 +77,7 @@ func (r *Request) LoadJSONRequest(root string, v interface{}) {
 	}
 
 	var s []byte
-	var body JSONData
+	var body JSON
 	extractJSONPayload(r.req.Body, &body)
 	s, _ = json.Marshal(body[root])
 	json.Unmarshal(s, &v)
@@ -114,7 +114,7 @@ func (r *Request) CurrentAction() string {
 }
 
 // RenderJSON rendering JSON to client
-func (r *Request) RenderJSON(code int, s JSONData) {
+func (r *Request) RenderJSON(code int, s JSON) {
 	if strings.Contains(r.req.Header.Get("Accept-Encoding"), "gzip") {
 		RenderJSONgzip(r.w, code, s)
 		return
@@ -124,7 +124,7 @@ func (r *Request) RenderJSON(code int, s JSONData) {
 
 // RenderJSONError rendering error to client in JSON format
 func (r *Request) RenderJSONError(code int, s string) {
-	r.RenderJSON(code, JSONData{"errors": JSONData{"message": []string{s}}})
+	r.RenderJSON(code, JSON{"errors": JSON{"message": []string{s}}})
 }
 
 // Render rendering string to client

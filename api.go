@@ -13,15 +13,15 @@ type Controller interface {
 	Param(string) string
 	Header(string) string
 	CurrentAction() string
-	RenderJSON(code int, s JSONData)
+	RenderJSON(code int, s JSON)
 	RenderJSONError(code int, s string)
 }
 
 // ReqFunc is the function type for middlware
 type ReqFunc func(Controller) bool
 
-// JSONData shortcut for map[string]interface{}
-type JSONData map[string]interface{}
+// JSON shortcut for map[string]interface{}
+type JSON map[string]interface{}
 
 // handle returns http handler function that will process controller actions
 func handle(i Controller, rootKey string, params map[string]string, extras []string, funcs ...ReqFunc) http.HandlerFunc {

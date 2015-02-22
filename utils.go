@@ -25,11 +25,11 @@ func capitalize(s string) string {
 
 // RenderJSONError common function to render error to client in JSON format
 func RenderJSONError(w http.ResponseWriter, code int, s string) {
-	RenderJSON(w, code, JSONData{"errors": JSONData{"message": []string{s}}})
+	RenderJSON(w, code, JSON{"errors": JSON{"message": []string{s}}})
 }
 
 // RenderJSON common function to render JSON to client
-func RenderJSON(w http.ResponseWriter, code int, s JSONData) {
+func RenderJSON(w http.ResponseWriter, code int, s JSON) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(code)
 	if err := json.NewEncoder(w).Encode(s); err != nil {
@@ -38,7 +38,7 @@ func RenderJSON(w http.ResponseWriter, code int, s JSONData) {
 }
 
 // RenderJSONgzip common function to render gzipped JSON to client
-func RenderJSONgzip(w http.ResponseWriter, code int, s JSONData) {
+func RenderJSONgzip(w http.ResponseWriter, code int, s JSON) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.Header().Set("Content-Encoding", "gzip")
 	w.WriteHeader(code)

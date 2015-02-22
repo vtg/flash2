@@ -139,54 +139,74 @@ func TestBody(t *testing.T) {
 	assertEqual(t, nil, res)
 }
 
+type TestA struct {
+	Request
+}
+
+func (t *TestA) Index() {
+	t.RenderString(200, "index")
+}
+
 type TestC struct {
 	Request
 }
 
 func (t *TestC) GETCollection() {
-	t.RenderJSON(200, JSONData{t.Root: "collection"})
+	t.RenderJSON(200, JSON{t.Root: "collection"})
 }
 
 func (t *TestC) Index() {
-	t.RenderJSON(200, JSONData{t.Root: "index"})
+	t.RenderJSON(200, JSON{t.Root: "index"})
 }
 
 func (t *TestC) Show() {
-	t.RenderJSON(200, JSONData{t.Root: "show"})
+	t.RenderJSON(200, JSON{t.Root: "show"})
 }
 
 func (t *TestC) Create() {
 	var i interface{}
 	t.LoadJSONRequest("root", &i)
-	t.RenderJSON(200, JSONData{t.Root: i})
+	t.RenderJSON(200, JSON{t.Root: i})
 }
 
-func testReq(req *http.Request, root string) *httptest.ResponseRecorder {
+func testReq(c Controller, req *http.Request, root string) *httptest.ResponseRecorder {
 	r := NewRouter()
-	r.Route("/pages", &TestC{}, root)
+	r.Route("/pages", c, root)
 	w := newRecorder()
 	r.ServeHTTP(w, req)
 	return w
 }
 
 func TestReponseIndex(t *testing.T) {
-	rec := testReq(newRequest("GET", "http://localhost/pages/", "{}"), "page")
+	rec := testReq(&TestC{}, newRequest("GET", "http://localhost/pages/", "{}"), "page")
 	assertEqual(t, "{\"page\":\"index\"}\n", string(rec.Body.Bytes()))
 }
 
 func TestReponseShow(t *testing.T) {
-	rec := testReq(newRequest("GET", "http://localhost/pages/10", "{}"), "page")
+	rec := testReq(&TestC{}, newRequest("GET", "http://localhost/pages/10", "{}"), "page")
 	assertEqual(t, "{\"page\":\"show\"}\n", string(rec.Body.Bytes()))
 }
 
 func TestReponseCreate(t *testing.T) {
-	rec := testReq(newRequest("POST", "http://localhost/pages", `{"root":[{"id":1}]}`), "page")
+	rec := testReq(&TestC{}, newRequest("POST", "http://localhost/pages", `{"root":[{"id":1}]}`), "page")
 	assertEqual(t, "{\"page\":[{\"id\":1}]}\n", string(rec.Body.Bytes()))
 }
 
 func BenchmarkHandleIndex(b *testing.B) {
 	r := NewRouter()
 	r.Route("/pages", &TestC{}, "page")
+	w := newRecorder()
+
+	req := newRequest("GET", "http://localhost/pages/", "{}")
+
+	for n := 0; n < b.N; n++ {
+		r.ServeHTTP(w, req)
+	}
+}
+
+func BenchmarkHandleIndex1(b *testing.B) {
+	r := NewRouter()
+	r.Route("/pages", &TestA{}, "page")
 	w := newRecorder()
 
 	req := newRequest("GET", "http://localhost/pages/", "{}")

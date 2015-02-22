@@ -23,13 +23,12 @@ func (r *Router) HandleFunc(path string, f func(http.ResponseWriter, *http.Reque
 // Route registers a new route with a matcher for URL path
 // and registering controller handler
 func (r *Router) Route(path string, i Controller, rootKey string, funcs ...ReqFunc) {
-	route := r.NewRoute(path)
-	route.HandlerFunc(handle(i, rootKey, route.prefix, implements(i), funcs...)).addRoute(false)
+	r.NewRoute("").Route(path, i, rootKey, funcs...)
 }
 
 // HandlePrefix registers a new handler to serve prefix
 func (r *Router) HandlePrefix(path string, handler http.Handler) {
-	r.NewRoute(path).Handler(handler).addRoute(false)
+	r.NewRoute(path).Handler(handler).addRoute()
 }
 
 // NewRoute registers an empty route.
@@ -54,14 +53,17 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	h := http.NotFoundHandler()
-
 	match := r.tree.match(p)
-	if match.route != nil {
-		h = match.route.handler
-	}
 
-	h.ServeHTTP(w, req)
+	if match.route == nil {
+		http.NotFoundHandler().ServeHTTP(w, req)
+	} else {
+		if match.route.ctr != nil {
+			match.route.ctr(match.params).ServeHTTP(w, req)
+		} else {
+			match.route.handler.ServeHTTP(w, req)
+		}
+	}
 }
 
 var meths = []string{"GET", "POST", "DELETE"}

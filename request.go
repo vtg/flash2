@@ -12,21 +12,24 @@ import (
 
 // Request gathers all information about request
 type Request struct {
-	URL    URL    //storing ID and action from url
-	Root   string // default JSON root key
-	Action string
-	params map[string]interface{}
+	URL       URL    //storing ID and action from url
+	Root      string // default JSON root key
+	Action    string
+	params    map[string]interface{}
+	urlParams map[string]string
 
 	req *http.Request
 	w   http.ResponseWriter
 }
 
 // Init initializing controller
-func (r *Request) Init(w http.ResponseWriter, req *http.Request, root, prefix string, extras []string) {
+func (r *Request) Init(w http.ResponseWriter, req *http.Request, root string, params map[string]string, extras []string) {
 	r.w = w
 	r.req = req
 	r.Root = root
-	r.setURL(prefix)
+	r.urlParams = params
+	r.URL.ID = params["id"]
+	r.URL.Action = params["action"]
 	r.Action = r.makeAction(extras)
 	r.params = make(map[string]interface{})
 }
@@ -149,22 +152,6 @@ func (r *Request) LoadFile(field, dir string) (string, error) {
 	defer f.Close()
 	io.Copy(f, file)
 	return handler.Filename, nil
-}
-
-func (r *Request) setURL(prefix string) {
-	path := strings.TrimPrefix(r.req.URL.Path, prefix)
-	path = strings.TrimPrefix(path, "/")
-	path = strings.TrimSuffix(path, "/")
-	parts := strings.Split(path, "/")
-
-	l := len(parts)
-
-	if l > 0 {
-		r.URL.ID = parts[0]
-		if l > 1 {
-			r.URL.Action = parts[1]
-		}
-	}
 }
 
 // URL storing id and action from url

@@ -35,67 +35,60 @@ func assertEqual(t *testing.T, expect interface{}, v interface{}) {
 	}
 }
 
-func assertNotEqual(t *testing.T, expect interface{}, v interface{}) {
-	if v == expect {
-		_, fname, lineno, ok := runtime.Caller(1)
-		if !ok {
-			fname, lineno = "<UNKNOWN>", -1
-		}
-		t.Errorf("FAIL: %s:%d\nExpected: %#v\nReceived: %#v", fname, lineno, expect, v)
-	}
-}
+func newReq(w http.ResponseWriter, req *http.Request, root string) *Request {
+	r := NewRouter()
+	r.Route("/pages", &CT{}, "root")
 
-func newReq(w http.ResponseWriter, req *http.Request, root, prefix string) *Request {
-	r := &Request{}
-	r.Init(w, req, root, prefix, []string{})
-	return r
+	params := r.tree.match(req.URL.Path).params
+	rq := &Request{}
+	rq.Init(w, req, root, params, []string{})
+	return rq
 }
 
 func TestMakeAction(t *testing.T) {
-	p := "/pages"
-	r := newReq(httpWriter, newRequest("GET", "http://localhost/pages/10", "{}"), "root", p)
+	r := newReq(httpWriter, newRequest("GET", "http://localhost/pages/10", "{}"), "root")
 	assertEqual(t, "Show", r.Action)
 	assertEqual(t, "10", r.URL.ID)
 	assertEqual(t, int64(10), r.URL.ID64())
 	assertEqual(t, "", r.URL.Action)
 
-	r = newReq(httpWriter, newRequest("GET", "http://localhost/pages/10/edit", "{}"), "root", p)
+	r = newReq(httpWriter, newRequest("GET", "http://localhost/pages/10/edit", "{}"), "root")
 	assertEqual(t, "GETEdit", r.Action)
 	assertEqual(t, "10", r.URL.ID)
 	assertEqual(t, int64(10), r.URL.ID64())
 	assertEqual(t, "edit", r.URL.Action)
 
-	r = newReq(httpWriter, newRequest("POST", "http://localhost/pages/10", "{}"), "root", p)
+	r = newReq(httpWriter, newRequest("POST", "http://localhost/pages/10", "{}"), "root")
 	assertEqual(t, "Update", r.Action)
 	assertEqual(t, "10", r.URL.ID)
 	assertEqual(t, int64(10), r.URL.ID64())
 	assertEqual(t, "", r.URL.Action)
 
-	r = newReq(httpWriter, newRequest("POST", "http://localhost/pages/10/edit", "{}"), "root", p)
+	r = newReq(httpWriter, newRequest("POST", "http://localhost/pages/10/edit", "{}"), "root")
 	assertEqual(t, "POSTEdit", r.Action)
 	assertEqual(t, "10", r.URL.ID)
 	assertEqual(t, int64(10), r.URL.ID64())
 	assertEqual(t, "edit", r.URL.Action)
 
-	r = newReq(httpWriter, newRequest("PUT", "http://localhost/pages/10", "{}"), "root", p)
+	r = newReq(httpWriter, newRequest("PUT", "http://localhost/pages/10", "{}"), "root")
 	assertEqual(t, "Update", r.Action)
 	assertEqual(t, "10", r.URL.ID)
 	assertEqual(t, int64(10), r.URL.ID64())
 	assertEqual(t, "", r.URL.Action)
 
-	r = newReq(httpWriter, newRequest("PUT", "http://localhost/pages/10/edit", "{}"), "root", p)
+	r = newReq(httpWriter, newRequest("PUT", "http://localhost/pages/10/edit", "{}"), "root")
 	assertEqual(t, "PUTEdit", r.Action)
 	assertEqual(t, "10", r.URL.ID)
 	assertEqual(t, int64(10), r.URL.ID64())
 	assertEqual(t, "edit", r.URL.Action)
 
-	r = newReq(httpWriter, newRequest("DELETE", "http://localhost/pages/10", "{}"), "root", p)
+	r = newReq(httpWriter, newRequest("DELETE", "http://localhost/pages/10", "{}"), "root")
 	assertEqual(t, "Destroy", r.Action)
 	assertEqual(t, "10", r.URL.ID)
 	assertEqual(t, int64(10), r.URL.ID64())
 	assertEqual(t, "", r.URL.Action)
 
-	r = newReq(httpWriter, newRequest("DELETE", "http://localhost/pages/10/edit", "{}"), "root", p)
+	r = newReq(httpWriter, newRequest("DELETE", "http://localhost/pages/10/edit", "{}"), "root")
 	assertEqual(t, "DELETEEdit", r.Action)
 	assertEqual(t, "10", r.URL.ID)
 	assertEqual(t, int64(10), r.URL.ID64())
@@ -105,7 +98,7 @@ func TestMakeAction(t *testing.T) {
 func TestQueryParams(t *testing.T) {
 	req := newRequest("GET", "http://localhost/?p1=1&p2=2", "{}")
 	r := Request{}
-	r.Init(httpWriter, req, "root", "", []string{})
+	r.Init(httpWriter, req, "root", map[string]string{}, []string{})
 	assertEqual(t, "1", r.QueryParam("p1"))
 	assertEqual(t, "2", r.QueryParam("p2"))
 	assertEqual(t, "", r.QueryParam("p3"))
@@ -114,7 +107,7 @@ func TestQueryParams(t *testing.T) {
 func TestHeader(t *testing.T) {
 	req := newRequest("GET", "http://localhost", "{}")
 	r := Request{}
-	r.Init(httpWriter, req, "root", "", []string{})
+	r.Init(httpWriter, req, "root", map[string]string{}, []string{})
 	assertEqual(t, "token1", r.Header("X-API-Token"))
 	assertEqual(t, "", r.Header("X-API-Token1"))
 }
@@ -122,7 +115,7 @@ func TestHeader(t *testing.T) {
 func TestBody(t *testing.T) {
 	req := newRequest("GET", "http://localhost/", "{\"id\":2}")
 	r := Request{}
-	r.Init(httpWriter, req, "root", "", []string{})
+	r.Init(httpWriter, req, "root", map[string]string{}, []string{})
 	var res interface{}
 	res = nil
 	r.LoadJSONRequest("", &res)
@@ -132,7 +125,7 @@ func TestBody(t *testing.T) {
 
 	req = newRequest("GET", "http://localhost/", "{\"id\":2}")
 	r = Request{}
-	r.Init(httpWriter, req, "root", "", []string{})
+	r.Init(httpWriter, req, "root", map[string]string{}, []string{})
 	res = nil
 	r.LoadJSONRequest("id", &res)
 	in = fmt.Sprintf("%#v", res)
@@ -140,7 +133,7 @@ func TestBody(t *testing.T) {
 
 	req = newRequest("GET", "http://localhost/", "{\"id\":2}")
 	r = Request{}
-	r.Init(httpWriter, req, "root", "", []string{})
+	r.Init(httpWriter, req, "root", map[string]string{}, []string{})
 	res = nil
 	r.LoadJSONRequest("id1", &res)
 	assertEqual(t, nil, res)
@@ -168,53 +161,70 @@ func (t *TestC) Create() {
 	t.RenderJSON(200, JSONData{t.Root: i})
 }
 
+func testReq(req *http.Request, root string) *httptest.ResponseRecorder {
+	r := NewRouter()
+	r.Route("/pages", &TestC{}, root)
+	w := newRecorder()
+	r.ServeHTTP(w, req)
+	return w
+}
+
 func TestReponseIndex(t *testing.T) {
-	req := newRequest("GET", "http://localhost/pages/", "{}")
-	handler := handle(&TestC{}, "page", "/pages", implements(&TestC{}))
-	rec := newRecorder()
-	handler(rec, req)
+	rec := testReq(newRequest("GET", "http://localhost/pages/", "{}"), "page")
 	assertEqual(t, "{\"page\":\"index\"}\n", string(rec.Body.Bytes()))
 }
 
 func TestReponseShow(t *testing.T) {
-	req := newRequest("GET", "http://localhost/pages/10", "{}")
-	handler := handle(&TestC{}, "page", "/pages", implements(&TestC{}))
-	rec := newRecorder()
-	handler(rec, req)
+	rec := testReq(newRequest("GET", "http://localhost/pages/10", "{}"), "page")
 	assertEqual(t, "{\"page\":\"show\"}\n", string(rec.Body.Bytes()))
 }
 
 func TestReponseCreate(t *testing.T) {
-	req := newRequest("POST", "http://localhost/pages", `{"root":[{"id":1}]}`)
-	handler := handle(&TestC{}, "page", "/pages", implements(&TestC{}))
-	rec := newRecorder()
-	handler(rec, req)
+	rec := testReq(newRequest("POST", "http://localhost/pages", `{"root":[{"id":1}]}`), "page")
 	assertEqual(t, "{\"page\":[{\"id\":1}]}\n", string(rec.Body.Bytes()))
 }
 
 func BenchmarkHandleIndex(b *testing.B) {
+	r := NewRouter()
+	r.Route("/pages", &TestC{}, "page")
+	w := newRecorder()
+
 	req := newRequest("GET", "http://localhost/pages/", "{}")
-	handler := handle(&TestC{}, "page", "/pages", implements(&TestC{}))
 
 	for n := 0; n < b.N; n++ {
-		handler(newRecorder(), req)
+		r.ServeHTTP(w, req)
 	}
 }
 
 func BenchmarkHandleShow(b *testing.B) {
+	r := NewRouter()
+	r.Route("/pages", &TestC{}, "page")
+	w := newRecorder()
 	req := newRequest("GET", "http://localhost/pages/10", "{}")
-	handler := handle(&TestC{}, "page", "/pages", implements(&TestC{}))
 
 	for n := 0; n < b.N; n++ {
-		handler(newRecorder(), req)
+		r.ServeHTTP(w, req)
 	}
 }
 
 func BenchmarkHandleCreate(b *testing.B) {
+	r := NewRouter()
+	r.Route("/pages", &TestC{}, "page")
+	w := newRecorder()
 	req := newRequest("POST", "http://localhost/pages/", `{"root":[{"id":1}]}`)
-	handler := handle(&TestC{}, "page", "/pages", implements(&TestC{}))
 
 	for n := 0; n < b.N; n++ {
-		handler(newRecorder(), req)
+		r.ServeHTTP(w, req)
+	}
+}
+
+func BenchmarkHandle404(b *testing.B) {
+	r := NewRouter()
+	r.Route("/pages", &TestC{}, "page")
+	w := newRecorder()
+	req := newRequest("GET", "http://localhost/pages1/", "{}")
+
+	for n := 0; n < b.N; n++ {
+		r.ServeHTTP(w, req)
 	}
 }

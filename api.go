@@ -5,31 +5,39 @@ import (
 	"reflect"
 )
 
-type Controller interface {
-	Init(w http.ResponseWriter, req *http.Request, root string, params map[string]string, extras []string)
+type CTX interface {
 	QueryParam(string) string
 	SetVar(string, interface{})
 	Var(string) interface{}
 	Param(string) string
 	Header(string) string
-	CurrentAction() string
 	RenderJSON(code int, s JSON)
 	RenderJSONError(code int, s string)
 }
 
+type Controller interface {
+	CTX
+	CurrentAction() string
+
+	init(http.ResponseWriter, *http.Request, string, map[string]string, []string)
+}
+
 // ReqFunc is the function type for middlware
-type ReqFunc func(Controller) bool
+type ReqFunc func(CTX) bool
+
+// handleFunc is the function type for routes
+type handlerFunc func(CTX)
 
 // JSON shortcut for map[string]interface{}
 type JSON map[string]interface{}
 
 // handle returns http handler function that will process controller actions
-func handle(i Controller, rootKey string, params map[string]string, extras []string, funcs ...ReqFunc) http.HandlerFunc {
+func handleResource(i Controller, rootKey string, params map[string]string, extras []string, funcs ...ReqFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		t := reflect.Indirect(reflect.ValueOf(i)).Type()
 		c := reflect.New(t)
 		ctr := c.Interface().(Controller)
-		ctr.Init(w, req, rootKey, params, extras)
+		ctr.init(w, req, rootKey, params, extras)
 
 		for _, f := range funcs {
 			if ok := f(ctr); !ok {
@@ -42,5 +50,21 @@ func handle(i Controller, rootKey string, params map[string]string, extras []str
 		} else {
 			RenderJSONError(w, http.StatusBadRequest, "action not found")
 		}
+	}
+}
+
+// handle returns http handler function that will process controller actions
+func handleRoute(f handlerFunc, params map[string]string, funcs ...ReqFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, req *http.Request) {
+		ctx := &Ctx{}
+		ctx.initCtx(w, req, params)
+
+		for _, f := range funcs {
+			if ok := f(ctx); !ok {
+				return
+			}
+		}
+
+		f(ctx)
 	}
 }

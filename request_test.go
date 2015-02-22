@@ -37,11 +37,11 @@ func assertEqual(t *testing.T, expect interface{}, v interface{}) {
 
 func newReq(w http.ResponseWriter, req *http.Request, root string) *Request {
 	r := NewRouter()
-	r.Route("/pages", &CT{}, "root")
+	r.Resource("/pages", &CT{}, "root")
 
 	params := r.tree.match(req.URL.Path).params
 	rq := &Request{}
-	rq.Init(w, req, root, params, []string{})
+	rq.init(w, req, root, params, []string{})
 	return rq
 }
 
@@ -98,7 +98,7 @@ func TestMakeAction(t *testing.T) {
 func TestQueryParams(t *testing.T) {
 	req := newRequest("GET", "http://localhost/?p1=1&p2=2", "{}")
 	r := Request{}
-	r.Init(httpWriter, req, "root", map[string]string{}, []string{})
+	r.init(httpWriter, req, "root", map[string]string{}, []string{})
 	assertEqual(t, "1", r.QueryParam("p1"))
 	assertEqual(t, "2", r.QueryParam("p2"))
 	assertEqual(t, "", r.QueryParam("p3"))
@@ -107,7 +107,7 @@ func TestQueryParams(t *testing.T) {
 func TestHeader(t *testing.T) {
 	req := newRequest("GET", "http://localhost", "{}")
 	r := Request{}
-	r.Init(httpWriter, req, "root", map[string]string{}, []string{})
+	r.init(httpWriter, req, "root", map[string]string{}, []string{})
 	assertEqual(t, "token1", r.Header("X-API-Token"))
 	assertEqual(t, "", r.Header("X-API-Token1"))
 }
@@ -115,7 +115,7 @@ func TestHeader(t *testing.T) {
 func TestBody(t *testing.T) {
 	req := newRequest("GET", "http://localhost/", "{\"id\":2}")
 	r := Request{}
-	r.Init(httpWriter, req, "root", map[string]string{}, []string{})
+	r.init(httpWriter, req, "root", map[string]string{}, []string{})
 	var res interface{}
 	res = nil
 	r.LoadJSONRequest("", &res)
@@ -125,7 +125,7 @@ func TestBody(t *testing.T) {
 
 	req = newRequest("GET", "http://localhost/", "{\"id\":2}")
 	r = Request{}
-	r.Init(httpWriter, req, "root", map[string]string{}, []string{})
+	r.init(httpWriter, req, "root", map[string]string{}, []string{})
 	res = nil
 	r.LoadJSONRequest("id", &res)
 	in = fmt.Sprintf("%#v", res)
@@ -133,7 +133,7 @@ func TestBody(t *testing.T) {
 
 	req = newRequest("GET", "http://localhost/", "{\"id\":2}")
 	r = Request{}
-	r.Init(httpWriter, req, "root", map[string]string{}, []string{})
+	r.init(httpWriter, req, "root", map[string]string{}, []string{})
 	res = nil
 	r.LoadJSONRequest("id1", &res)
 	assertEqual(t, nil, res)
@@ -171,7 +171,7 @@ func (t *TestC) Create() {
 
 func testReq(c Controller, req *http.Request, root string) *httptest.ResponseRecorder {
 	r := NewRouter()
-	r.Route("/pages", c, root)
+	r.Resource("/pages", c, root)
 	w := newRecorder()
 	r.ServeHTTP(w, req)
 	return w
@@ -199,7 +199,7 @@ func TestReponseCollection(t *testing.T) {
 
 func BenchmarkHandleIndex(b *testing.B) {
 	r := NewRouter()
-	r.Route("/pages", &TestC{}, "page")
+	r.Resource("/pages", &TestC{}, "page")
 	w := newRecorder()
 
 	req := newRequest("GET", "http://localhost/pages/", "{}")
@@ -211,7 +211,7 @@ func BenchmarkHandleIndex(b *testing.B) {
 
 func BenchmarkHandleIndex1(b *testing.B) {
 	r := NewRouter()
-	r.Route("/pages", &TestA{}, "page")
+	r.Resource("/pages", &TestA{}, "page")
 	w := newRecorder()
 
 	req := newRequest("GET", "http://localhost/pages/", "{}")
@@ -223,7 +223,7 @@ func BenchmarkHandleIndex1(b *testing.B) {
 
 func BenchmarkHandleShow(b *testing.B) {
 	r := NewRouter()
-	r.Route("/pages", &TestC{}, "page")
+	r.Resource("/pages", &TestC{}, "page")
 	w := newRecorder()
 	req := newRequest("GET", "http://localhost/pages/10", "{}")
 
@@ -234,7 +234,7 @@ func BenchmarkHandleShow(b *testing.B) {
 
 func BenchmarkHandleCreate(b *testing.B) {
 	r := NewRouter()
-	r.Route("/pages", &TestC{}, "page")
+	r.Resource("/pages", &TestC{}, "page")
 	w := newRecorder()
 	req := newRequest("POST", "http://localhost/pages/", `{"root":[{"id":1}]}`)
 
@@ -245,7 +245,7 @@ func BenchmarkHandleCreate(b *testing.B) {
 
 func BenchmarkHandle404(b *testing.B) {
 	r := NewRouter()
-	r.Route("/pages", &TestC{}, "page")
+	r.Resource("/pages", &TestC{}, "page")
 	w := newRecorder()
 	req := newRequest("GET", "http://localhost/pages1/", "{}")
 

@@ -15,12 +15,12 @@ type handlerFunc func(Ctxi)
 type JSON map[string]interface{}
 
 // handle returns http handler function that will process controller actions
-func handleResource(i Ctr, rootKey string, params map[string]string, extras []string, funcs ...ReqFunc) http.HandlerFunc {
+func handleResource(i Ctr, params map[string]string, extras []string, funcs ...ReqFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		t := reflect.Indirect(reflect.ValueOf(i)).Type()
 		c := reflect.New(t)
 		ctr := c.Interface().(Ctr)
-		ctr.init(w, req, rootKey, params, extras)
+		ctr.init(w, req, params, extras)
 
 		for _, f := range funcs {
 			if ok := f(ctr); !ok {

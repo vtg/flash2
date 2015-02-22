@@ -28,8 +28,8 @@ func (r *Router) Route(path string, f handlerFunc, funcs ...ReqFunc) {
 
 // Resource registers a new Resource with a matcher for URL path
 // and registering controller handler
-func (r *Router) Resource(path string, i Ctr, rootKey string, funcs ...ReqFunc) {
-	r.NewRoute("").Resource(path, i, rootKey, funcs...)
+func (r *Router) Resource(path string, i Ctr, funcs ...ReqFunc) {
+	r.NewRoute("").Resource(path, i, funcs...)
 }
 
 // HandlePrefix registers a new handler to serve prefix

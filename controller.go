@@ -7,21 +7,19 @@ type Ctr interface {
 	Ctxi
 	CurrentAction() string
 
-	init(http.ResponseWriter, *http.Request, string, map[string]string, []string)
+	init(http.ResponseWriter, *http.Request, map[string]string, []string)
 }
 
 // Controller gathers all information about request
 type Controller struct {
-	Root   string // default JSON root key
 	Action string
 
 	Ctx
 }
 
 // Init initializing controller
-func (r *Controller) init(w http.ResponseWriter, req *http.Request, root string, params map[string]string, extras []string) {
+func (r *Controller) init(w http.ResponseWriter, req *http.Request, params map[string]string, extras []string) {
 	r.initCtx(w, req, params)
-	r.Root = root
 	r.Action = r.makeAction(extras)
 }
 

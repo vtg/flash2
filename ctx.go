@@ -98,10 +98,16 @@ func (c *Ctx) RenderJSONError(code int, s string) {
 	c.RenderJSON(code, JSON{"errors": JSON{"message": []string{s}}})
 }
 
-// Render rendering string to client
+// RenderString rendering string to client
 func (c *Ctx) RenderString(code int, s string) {
 	c.W.WriteHeader(code)
 	c.W.Write([]byte(s))
+}
+
+// Render rendering []byte to client
+func (c *Ctx) Render(code int, b []byte) {
+	c.W.WriteHeader(code)
+	c.W.Write(b)
 }
 
 // RenderError rendering error to client

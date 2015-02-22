@@ -88,9 +88,14 @@ func (r *Request) QueryParam(s string) string {
 	return r.req.URL.Query().Get(s)
 }
 
-// Param get IRL param
+// Param get URL param
 func (r *Request) Param(k string) string {
 	return r.params[k]
+}
+
+// Params returns all URL params
+func (r *Request) Params() map[string]string {
+	return r.params
 }
 
 // SetVar set session variable

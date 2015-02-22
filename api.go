@@ -15,7 +15,7 @@ type CTX interface {
 	RenderJSONError(code int, s string)
 }
 
-type Controller interface {
+type Ctr interface {
 	CTX
 	CurrentAction() string
 
@@ -32,11 +32,11 @@ type handlerFunc func(CTX)
 type JSON map[string]interface{}
 
 // handle returns http handler function that will process controller actions
-func handleResource(i Controller, rootKey string, params map[string]string, extras []string, funcs ...ReqFunc) http.HandlerFunc {
+func handleResource(i Ctr, rootKey string, params map[string]string, extras []string, funcs ...ReqFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		t := reflect.Indirect(reflect.ValueOf(i)).Type()
 		c := reflect.New(t)
-		ctr := c.Interface().(Controller)
+		ctr := c.Interface().(Ctr)
 		ctr.init(w, req, rootKey, params, extras)
 
 		for _, f := range funcs {

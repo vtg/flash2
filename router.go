@@ -28,7 +28,7 @@ func (r *Router) Route(path string, f handlerFunc, funcs ...ReqFunc) {
 
 // Resource registers a new Resource with a matcher for URL path
 // and registering controller handler
-func (r *Router) Resource(path string, i Controller, rootKey string, funcs ...ReqFunc) {
+func (r *Router) Resource(path string, i Ctr, rootKey string, funcs ...ReqFunc) {
 	r.NewRoute("").Resource(path, i, rootKey, funcs...)
 }
 

@@ -169,7 +169,7 @@ func (t *TestC) Create() {
 	t.RenderJSON(200, JSON{t.Root: i})
 }
 
-func testReq(c Controller, req *http.Request, root string) *httptest.ResponseRecorder {
+func testReq(c Ctr, req *http.Request, root string) *httptest.ResponseRecorder {
 	r := NewRouter()
 	r.Resource("/pages", c, root)
 	w := newRecorder()

@@ -44,7 +44,7 @@ func (r *Route) Route(path string, f handlerFunc, funcs ...ReqFunc) {
 //  - "page" is the root key for json request/response
 //  - AuthFunc is middleware function that implements ReqFunc.
 //
-func (r *Route) Resource(path string, i Controller, rootKey string, funcs ...ReqFunc) {
+func (r *Route) Resource(path string, i Ctr, rootKey string, funcs ...ReqFunc) {
 	route := r.NewRoute(path)
 	route.ctr = func(params map[string]string) http.HandlerFunc {
 		return http.HandlerFunc(handleResource(i, rootKey, params, implements(i), funcs...))

@@ -35,12 +35,12 @@ func assertEqual(t *testing.T, expect interface{}, v interface{}) {
 	}
 }
 
-func newReq(w http.ResponseWriter, req *http.Request, root string) *Request {
+func newReq(w http.ResponseWriter, req *http.Request, root string) *Controller {
 	r := NewRouter()
 	r.Resource("/pages", &CT{}, "root")
 
 	params := r.tree.match(req.URL.Path).params
-	rq := &Request{}
+	rq := &Controller{}
 	rq.init(w, req, root, params, []string{})
 	return rq
 }
@@ -97,7 +97,7 @@ func TestMakeAction(t *testing.T) {
 
 func TestQueryParams(t *testing.T) {
 	req := newRequest("GET", "http://localhost/?p1=1&p2=2", "{}")
-	r := Request{}
+	r := Controller{}
 	r.init(httpWriter, req, "root", map[string]string{}, []string{})
 	assertEqual(t, "1", r.QueryParam("p1"))
 	assertEqual(t, "2", r.QueryParam("p2"))
@@ -106,7 +106,7 @@ func TestQueryParams(t *testing.T) {
 
 func TestHeader(t *testing.T) {
 	req := newRequest("GET", "http://localhost", "{}")
-	r := Request{}
+	r := Controller{}
 	r.init(httpWriter, req, "root", map[string]string{}, []string{})
 	assertEqual(t, "token1", r.Header("X-API-Token"))
 	assertEqual(t, "", r.Header("X-API-Token1"))
@@ -114,7 +114,7 @@ func TestHeader(t *testing.T) {
 
 func TestBody(t *testing.T) {
 	req := newRequest("GET", "http://localhost/", "{\"id\":2}")
-	r := Request{}
+	r := Controller{}
 	r.init(httpWriter, req, "root", map[string]string{}, []string{})
 	var res interface{}
 	res = nil
@@ -124,7 +124,7 @@ func TestBody(t *testing.T) {
 	assertEqual(t, out, in)
 
 	req = newRequest("GET", "http://localhost/", "{\"id\":2}")
-	r = Request{}
+	r = Controller{}
 	r.init(httpWriter, req, "root", map[string]string{}, []string{})
 	res = nil
 	r.LoadJSONRequest("id", &res)
@@ -132,7 +132,7 @@ func TestBody(t *testing.T) {
 	assertEqual(t, "2", in)
 
 	req = newRequest("GET", "http://localhost/", "{\"id\":2}")
-	r = Request{}
+	r = Controller{}
 	r.init(httpWriter, req, "root", map[string]string{}, []string{})
 	res = nil
 	r.LoadJSONRequest("id1", &res)
@@ -140,7 +140,7 @@ func TestBody(t *testing.T) {
 }
 
 type TestA struct {
-	Request
+	Controller
 }
 
 func (t *TestA) Index() {
@@ -148,7 +148,7 @@ func (t *TestA) Index() {
 }
 
 type TestC struct {
-	Request
+	Controller
 }
 
 func (t *TestC) GETCollection() {

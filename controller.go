@@ -2,15 +2,16 @@ package rapi
 
 import "net/http"
 
+// Ctr public interface for Controller
 type Ctr interface {
-	ctx
+	Ctxi
 	CurrentAction() string
 
 	init(http.ResponseWriter, *http.Request, string, map[string]string, []string)
 }
 
-// Request gathers all information about request
-type Request struct {
+// Controller gathers all information about request
+type Controller struct {
 	Root   string // default JSON root key
 	Action string
 
@@ -18,13 +19,13 @@ type Request struct {
 }
 
 // Init initializing controller
-func (r *Request) init(w http.ResponseWriter, req *http.Request, root string, params map[string]string, extras []string) {
+func (r *Controller) init(w http.ResponseWriter, req *http.Request, root string, params map[string]string, extras []string) {
 	r.initCtx(w, req, params)
 	r.Root = root
 	r.Action = r.makeAction(extras)
 }
 
-func (r *Request) makeAction(extras []string) string {
+func (r *Controller) makeAction(extras []string) string {
 	if r.params["id"] == "" {
 		switch r.Req.Method {
 		case "GET":
@@ -60,6 +61,6 @@ func (r *Request) makeAction(extras []string) string {
 }
 
 // CurrentAction returns current controller action
-func (r *Request) CurrentAction() string {
+func (r *Controller) CurrentAction() string {
 	return r.Action
 }

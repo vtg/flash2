@@ -10,7 +10,7 @@ func HandlerForTest(w http.ResponseWriter, req *http.Request)  {}
 func HandlerForTest1(w http.ResponseWriter, req *http.Request) {}
 
 type CT struct {
-	Request
+	Controller
 }
 
 func (c *CT) GETCollection() {

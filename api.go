@@ -6,10 +6,10 @@ import (
 )
 
 // ReqFunc is the function type for middlware
-type ReqFunc func(ctx) bool
+type ReqFunc func(Ctxi) bool
 
 // handleFunc is the function type for routes
-type handlerFunc func(ctx)
+type handlerFunc func(Ctxi)
 
 // JSON shortcut for map[string]interface{}
 type JSON map[string]interface{}
@@ -39,15 +39,15 @@ func handleResource(i Ctr, rootKey string, params map[string]string, extras []st
 // handle returns http handler function that will process controller actions
 func handleRoute(f handlerFunc, params map[string]string, funcs ...ReqFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
-		ctx := &Ctx{}
-		ctx.initCtx(w, req, params)
+		Ctxi := &Ctx{}
+		Ctxi.initCtx(w, req, params)
 
 		for _, f := range funcs {
-			if ok := f(ctx); !ok {
+			if ok := f(Ctxi); !ok {
 				return
 			}
 		}
 
-		f(ctx)
+		f(Ctxi)
 	}
 }

@@ -5,28 +5,11 @@ import (
 	"reflect"
 )
 
-type CTX interface {
-	QueryParam(string) string
-	SetVar(string, interface{})
-	Var(string) interface{}
-	Param(string) string
-	Header(string) string
-	RenderJSON(code int, s JSON)
-	RenderJSONError(code int, s string)
-}
-
-type Ctr interface {
-	CTX
-	CurrentAction() string
-
-	init(http.ResponseWriter, *http.Request, string, map[string]string, []string)
-}
-
 // ReqFunc is the function type for middlware
-type ReqFunc func(CTX) bool
+type ReqFunc func(ctx) bool
 
 // handleFunc is the function type for routes
-type handlerFunc func(CTX)
+type handlerFunc func(ctx)
 
 // JSON shortcut for map[string]interface{}
 type JSON map[string]interface{}

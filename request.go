@@ -2,6 +2,13 @@ package rapi
 
 import "net/http"
 
+type Ctr interface {
+	ctx
+	CurrentAction() string
+
+	init(http.ResponseWriter, *http.Request, string, map[string]string, []string)
+}
+
 // Request gathers all information about request
 type Request struct {
 	Root   string // default JSON root key

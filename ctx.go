@@ -10,6 +10,16 @@ import (
 	"strings"
 )
 
+type ctx interface {
+	QueryParam(string) string
+	SetVar(string, interface{})
+	Var(string) interface{}
+	Param(string) string
+	Header(string) string
+	RenderJSON(code int, s JSON)
+	RenderJSONError(code int, s string)
+}
+
 // Ctx contains request information
 type Ctx struct {
 	Req *http.Request

@@ -192,6 +192,11 @@ func TestReponseCreate(t *testing.T) {
 	assertEqual(t, "{\"page\":[{\"id\":1}]}\n", string(rec.Body.Bytes()))
 }
 
+func TestReponseCollection(t *testing.T) {
+	rec := testReq(&TestC{}, newRequest("GET", "http://localhost/pages/collection", "{}"), "page")
+	assertEqual(t, "{\"page\":\"collection\"}\n", string(rec.Body.Bytes()))
+}
+
 func BenchmarkHandleIndex(b *testing.B) {
 	r := NewRouter()
 	r.Route("/pages", &TestC{}, "page")

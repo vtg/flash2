@@ -10,8 +10,8 @@ import (
 	"strings"
 )
 
-// Ctxi public interface for Ctx
-type Ctxi interface {
+// Req public interface for Ctx
+type Req interface {
 	QueryParam(string) string
 	SetVar(string, interface{})
 	Var(string) interface{}

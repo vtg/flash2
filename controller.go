@@ -4,7 +4,7 @@ import "net/http"
 
 // Ctr public interface for Controller
 type Ctr interface {
-	Ctxi
+	Req
 	CurrentAction() string
 
 	init(http.ResponseWriter, *http.Request, map[string]string, []string)

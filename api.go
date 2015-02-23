@@ -6,10 +6,10 @@ import (
 )
 
 // ReqFunc is the function type for middlware
-type ReqFunc func(Ctxi) bool
+type ReqFunc func(Req) bool
 
 // handleFunc is the function type for routes
-type handlerFunc func(Ctxi)
+type handlerFunc func(Req)
 
 // JSON shortcut for map[string]interface{}
 type JSON map[string]interface{}

@@ -2,6 +2,7 @@ package flash
 
 import "net/http"
 
+// Route storing route information
 type Route struct {
 	router  *Router
 	prefix  string

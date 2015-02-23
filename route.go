@@ -49,7 +49,7 @@ func (r *Route) Resource(path string, i Ctr, funcs ...ReqFunc) {
 		return http.HandlerFunc(handleResource(i, params, implements(i), funcs...))
 	}
 
-	route.router.tree.assign(route, route.prefix, "id", "action")
+	route.router.tree.assign(route, "id", "action")
 }
 
 // FileServer provides static files serving
@@ -64,7 +64,8 @@ func (r *Route) Resource(path string, i Ctr, funcs ...ReqFunc) {
 //  - preferGzip specifying if it should look for gzipped file version
 //
 func (r *Route) FileServer(path string, b ...bool) {
-	r.Handler(fileServer(path, b)).addRoute()
+	route := r.Handler(fileServer(path, b))
+	route.router.tree.assign(route, "**")
 }
 
 // NewRoute registers an empty route.
@@ -84,5 +85,5 @@ func (r *Route) HandlerFunc(f func(http.ResponseWriter, *http.Request)) *Route {
 }
 
 func (r *Route) addRoute() {
-	r.router.tree.assign(r, r.prefix)
+	r.router.tree.assign(r)
 }

@@ -1,4 +1,4 @@
-rapi
+flash
 ====
 HTTP routing package that helps to create restfull json api for Go applications.
 
@@ -12,14 +12,14 @@ what it does:
  - sending gzipped versions of static files if any
 
 standard REST usage example:
-   
+
 ```go
 package main
 
 import (
 	"net/http"
 
-	"github.com/vtg/rapi"
+	"github.com/vtg/flash"
 )
 
 var pages map[int64]*Page
@@ -28,7 +28,7 @@ func main() {
 	pages = make(map[int64]*Page)
 	pages[1] = &Page{Id: 1, Name: "Page 1"}
 	pages[2] = &Page{Id: 2, Name: "Page 2"}
-	r := rapi.NewRouter()
+	r := flash.NewRouter()
 	a := r.PathPrefix("/api/v1")
 	// see Route.Route for more info
 	a.Route("/pages", &Pages{}, "page", authenticate)
@@ -39,7 +39,7 @@ func main() {
 }
 
 // simple quthentication implementation
-func authenticate(c rapi.Controller) bool {
+func authenticate(c flash.Controller) bool {
 	key := c.QueryParam("key")
 	if key == "pass" {
 		return true
@@ -71,7 +71,7 @@ func insertPage(p Page) *Page {
 
 // Pages used as controller
 type Pages struct {
-	rapi.Request
+	flash.Request
 }
 
 // Index processed on GET /pages
@@ -80,14 +80,14 @@ func (p *Pages) Index() {
 	for _, v := range pages {
 		pgs = append(pgs, *v)
 	}
-	p.RenderJSON(200, rapi.JSONData{"pages": pgs})
+	p.RenderJSON(200, flash.JSONData{"pages": pgs})
 }
 
 // Show processed on GET /pages/1
 func (p *Pages) Show() {
 	page := findPage(p.ID)
 	if page.Id > 0 {
-		p.RenderJSON(200, rapi.JSONData{"page": page})
+		p.RenderJSON(200, flash.JSONData{"page": page})
 	} else {
 		p.RenderJSONError(404, "record not found")
 	}
@@ -103,7 +103,7 @@ func (p *Pages) Create() {
 		p.RenderJSONError(422, "name required")
 	} else {
 		insertPage(m)
-		p.RenderJSON(200, rapi.JSONData{p.Root: m})
+		p.RenderJSON(200, flash.JSONData{p.Root: m})
 	}
 }
 
@@ -115,7 +115,7 @@ func (p *Pages) Update() {
 	page := findPage(p.ID)
 	if page.Id > 0 {
 		page.Content = m.Content
-		p.RenderJSON(200, rapi.JSONData{"page": page})
+		p.RenderJSON(200, flash.JSONData{"page": page})
 	} else {
 		p.RenderJSONError(404, "record not found")
 	}
@@ -126,14 +126,14 @@ func (p *Pages) Destroy() {
 	page := findPage(p.ID)
 	if page.Id > 0 {
 		delete(pages, page.Id)
-		p.RenderJSON(203, rapi.JSONData{})
+		p.RenderJSON(203, flash.JSONData{})
 	} else {
 		p.RenderJSONError(404, "record not found")
 	}
 }
 ```
 
-Its possible to serve custom actions.  
+Its possible to serve custom actions.
 To add custom action to controller prefix action name with HTTP method:
 
 ```go
@@ -160,4 +160,4 @@ VTG - http://github.com/vtg
 
 Released under the [MIT License](http://www.opensource.org/licenses/MIT).
 
-[![GoDoc](https://godoc.org/github.com/vtg/rapi?status.png)](http://godoc.org/github.com/vtg/rapi)
+[![GoDoc](https://godoc.org/github.com/vtg/flash?status.png)](http://godoc.org/github.com/vtg/flash)

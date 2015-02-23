@@ -12,7 +12,7 @@ type ModelErrors map[string][]string
 
 // ModelBase structure for base model
 //	type User struct {
-// 	    rapi.ModelBase
+// 	    flash.ModelBase
 // 	    Name string
 // 	}
 type ModelBase struct {
@@ -151,7 +151,7 @@ func (m *ModelBase) ValidateFormat(f, v, reg string) {
 
 // Model structure for base model with ID included
 //	type User struct {
-// 	    rapi.Model
+// 	    flash.Model
 // 	    Name string
 // 	}
 type Model struct {

@@ -1,4 +1,4 @@
-package rapi
+package flash
 
 import "net/http"
 
@@ -21,7 +21,7 @@ func (r *Route) HandleFunc(s string, f func(http.ResponseWriter, *http.Request))
 //    api = r.PathPrefix("/api/v1")
 //    api.Route("/pages/:id/comments", PageComments, AuthFunc)
 // where
-//  - PageComments is the function implementing func(*rapi.Ctx)
+//  - PageComments is the function implementing func(*flash.Ctx)
 //  - AuthFunc is middleware function that implements ReqFunc.
 //
 func (r *Route) Route(path string, f handlerFunc, funcs ...ReqFunc) {

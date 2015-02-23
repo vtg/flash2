@@ -1,4 +1,4 @@
-package rapi
+package flash
 
 import "net/http"
 

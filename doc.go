@@ -18,7 +18,7 @@
 //    import (
 //      "net/http"
 //
-//      "github.com/vtg/rapi"
+//      "github.com/vtg/flash"
 //    )
 //
 //    var pages map[int64]*Page
@@ -28,7 +28,7 @@
 //      pages[1] = &Page{Id: 1, Name: "Page 1"}
 //      pages[2] = &Page{Id: 2, Name: "Page 2"}
 //
-//      r := rapi.NewRouter()
+//      r := flash.NewRouter()
 //      a := r.PathPrefix("/api/v1")
 //
 //      // see Route.Route for more info
@@ -41,7 +41,7 @@
 //    }
 //
 //    // simple quthentication implementation
-//    func auth(c rapi.Req) bool {
+//    func auth(c flash.Req) bool {
 //      key := c.QueryParam("key")
 //      if key == "correct-password" {
 //        return true
@@ -75,7 +75,7 @@
 //
 //    // Pages used as controller
 //    type Pages struct {
-//      rapi.Controller
+//      flash.Controller
 //    }
 //
 //    // Index processed on GET /pages
@@ -86,7 +86,7 @@
 //        res = append(res, v)
 //      }
 //
-//      p.RenderJSON(200, rapi.JSON{"pages": res})
+//      p.RenderJSON(200, flash.JSON{"pages": res})
 //    }
 //
 //    // Show processed on GET /pages/1
@@ -98,7 +98,7 @@
 //        return
 //      }
 //
-//      p.RenderJSON(200, rapi.JSON{"page": page})
+//      p.RenderJSON(200, flash.JSON{"page": page})
 //    }
 //
 //    // Create processed on POST /pages
@@ -111,7 +111,7 @@
 //        p.RenderJSONError(422, "name required")
 //      } else {
 //        insertPage(m)
-//        p.RenderJSON(200, rapi.JSON{"page": m})
+//        p.RenderJSON(200, flash.JSON{"page": m})
 //      }
 //    }
 //
@@ -128,7 +128,7 @@
 //      m := Page{}
 //      p.LoadJSONRequest("page", &m)
 //      page.Content = m.Content
-//      p.RenderJSON(200, rapi.JSON{"page": page})
+//      p.RenderJSON(200, flash.JSON{"page": page})
 //    }
 //
 //    // Destroy processed on DELETE /pages/1
@@ -141,7 +141,7 @@
 //      }
 //
 //      delete(pages, page.Id)
-//      p.RenderJSON(203, rapi.JSON{})
+//      p.RenderJSON(203, flash.JSON{})
 //    }
 //
 //    // POSTActivate custom non crud action activates/deactivated page. processed on POST /pages/1/activate
@@ -153,7 +153,7 @@
 //      }
 //
 //      page.Visible = !page.Visible
-//      p.RenderJSON(200, rapi.JSON{"page": page})
+//      p.RenderJSON(200, flash.JSON{"page": page})
 //    }
 //
 //
@@ -178,4 +178,4 @@
 //    ...
 //
 //
-package rapi
+package flash

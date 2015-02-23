@@ -2,6 +2,7 @@ package flash
 
 import "strings"
 
+// leaf contains part of route
 type leaf struct {
 	route *Route
 	param string
@@ -15,6 +16,7 @@ type match struct {
 	params map[string]string
 }
 
+// match returns route if found and route params
 func (l *leaf) match(s string) match {
 	parts := strings.Split(strings.Trim(s, "/"), "/")
 	res := match{params: make(map[string]string)}
@@ -36,6 +38,7 @@ func (l *leaf) match(s string) match {
 	return res
 }
 
+// assign creating route structure
 func (l *leaf) assign(r *Route, path string, params ...string) {
 	parts := strings.Split(strings.Trim(path, "/"), "/")
 	curPath := l

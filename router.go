@@ -53,12 +53,7 @@ func (r *Router) PathPrefix(s string) *Route {
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	p := cleanPath(req.URL.Path)
 	if p != req.URL.Path {
-		url := *req.URL
-		url.Path = p
-		p = url.String()
-
-		w.Header().Set("Location", p)
-		w.WriteHeader(http.StatusMovedPermanently)
+		http.Redirect(w, req, p, http.StatusMovedPermanently)
 		return
 	}
 

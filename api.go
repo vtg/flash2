@@ -9,7 +9,7 @@ import (
 type ReqFunc func(Req) bool
 
 // handlerFunc is the function type for routes
-type handlerFunc func(Req)
+type handlerFunc func(*Ctx)
 
 // JSON shortcut for map[string]interface{}
 type JSON map[string]interface{}
@@ -39,15 +39,15 @@ func handleResource(i Ctr, params map[string]string, extras []string, funcs ...R
 // handleRoute returns http handler function to process route
 func handleRoute(f handlerFunc, params map[string]string, funcs ...ReqFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
-		Ctxi := &Ctx{}
-		Ctxi.initCtx(w, req, params)
+		c := &Ctx{}
+		c.initCtx(w, req, params)
 
 		for _, f := range funcs {
-			if ok := f(Ctxi); !ok {
+			if ok := f(c); !ok {
 				return
 			}
 		}
 
-		f(Ctxi)
+		f(c)
 	}
 }

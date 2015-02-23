@@ -11,6 +11,20 @@ what it does:
  - sending gzipped JSON responses when applicable
  - sending gzipped versions of static files if any
 
+Routing:
+```go
+r := flash.NewRouter()
+
+// route to function(*Ctx)
+r.Route("/pages/:id", ShowPage)
+
+// auto generates controller routes
+r.Resource("/pages", &PagesController{})
+
+// standard http handler
+r.HandleFunc("/", IndexHandler)
+```
+
 standard REST usage example:
 
 ```go

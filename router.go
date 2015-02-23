@@ -6,10 +6,12 @@ import (
 	"strings"
 )
 
+// Router stroring app routes structure
 type Router struct {
 	tree *leaf
 }
 
+// NewRouter creates new Router
 func NewRouter() *Router {
 	return &Router{tree: &leaf{leafs: make(leafs)}}
 }
@@ -42,6 +44,7 @@ func (r *Router) NewRoute(prefix string) *Route {
 	return &Route{router: r, prefix: prefix}
 }
 
+// PathPrefix create new prefixed group for routes
 func (r *Router) PathPrefix(s string) *Route {
 	return r.NewRoute(s)
 }

@@ -81,8 +81,8 @@ func implements(v interface{}) []string {
 	t := reflect.TypeOf(v)
 	for i := 0; i < t.NumMethod(); i++ {
 		m := t.Method(i)
-		for _, v := range meths {
-			if strings.HasPrefix(m.Name, v) {
+		for _, k := range meths {
+			if strings.HasPrefix(m.Name, k) {
 				res = append(res, m.Name)
 				continue
 			}

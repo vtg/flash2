@@ -42,9 +42,12 @@ func (l *leaf) assign(r *Route, path string, params ...string) {
 	for k := range parts {
 		v := parts[k]
 		n := ""
-		if parts[k][0] == ':' {
-			v = "*"
-			n = parts[k][1:]
+		// check if part is a template
+		if parts[k] != "" {
+			if parts[k][0] == ':' {
+				v = "*"
+				n = parts[k][1:]
+			}
 		}
 		_, ok := curPath.leafs[v]
 		if !ok {

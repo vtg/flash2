@@ -7,7 +7,6 @@ type Route struct {
 	router  *Router
 	prefix  string
 	handler http.Handler
-	params  map[string]string
 	ctr     func(map[string]string) http.HandlerFunc
 }
 

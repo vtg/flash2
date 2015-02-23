@@ -1,4 +1,4 @@
-package model
+package flash
 
 import (
 	"fmt"

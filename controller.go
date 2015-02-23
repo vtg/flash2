@@ -10,7 +10,7 @@ type Ctr interface {
 	init(http.ResponseWriter, *http.Request, map[string]string, []string)
 }
 
-// Controller gathers all information about request
+// Controller contains request information
 type Controller struct {
 	Action string
 

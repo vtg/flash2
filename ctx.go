@@ -30,6 +30,7 @@ type Ctx struct {
 	params map[string]string
 }
 
+// initCtx initializing Ctx structure
 func (c *Ctx) initCtx(w http.ResponseWriter, req *http.Request, params map[string]string) {
 	c.W = w
 	c.Req = req

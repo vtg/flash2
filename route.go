@@ -49,7 +49,7 @@ func (r *Route) Resource(path string, i Ctr, funcs ...ReqFunc) {
 		return http.HandlerFunc(handleResource(i, params, implements(i), funcs...))
 	}
 
-	route.addRoute()
+	route.router.tree.assign(route, route.prefix, "id", "action")
 }
 
 // FileServer provides static files serving
@@ -84,9 +84,5 @@ func (r *Route) HandlerFunc(f func(http.ResponseWriter, *http.Request)) *Route {
 }
 
 func (r *Route) addRoute() {
-	if r.ctr != nil {
-		r.router.tree.assign(r, r.prefix, "id", "action")
-		return
-	}
 	r.router.tree.assign(r, r.prefix)
 }

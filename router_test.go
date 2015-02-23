@@ -41,26 +41,6 @@ func TestLeafs(t *testing.T) {
 	assertEqual(t, true, res.route == nil)
 }
 
-func TestRouteLeafs(t *testing.T) {
-	r := NewRouter()
-	p := r.PathPrefix("/api")
-	p.HandleFunc("/pages/:id/:action", HandlerForTest)
-	p.HandleFunc("/pages/:id", HandlerForTest)
-
-	res := r.tree.match("/api/pages/1/active")
-	assertEqual(t, "/api/pages/:id/:action", res.route.prefix)
-	assertEqual(t, "1", res.params["id"])
-	assertEqual(t, "active", res.params["action"])
-
-	res = r.tree.match("/api/pages/1")
-	assertEqual(t, "/api/pages/:id", res.route.prefix)
-	assertEqual(t, "1", res.params["id"])
-	assertEqual(t, "", res.params["action"])
-
-	res = r.tree.match("/api/pages")
-	assertEqual(t, true, res.route == nil)
-}
-
 func TestRoutesOrder(t *testing.T) {
 
 	r := NewRouter()

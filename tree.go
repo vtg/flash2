@@ -26,6 +26,9 @@ func (l *leaf) match(s string) match {
 		if !ok {
 			p, ok = l.leafs["*"]
 			if !ok {
+				if p, ok = l.leafs["**"]; ok {
+					l = p
+				}
 				break
 			}
 			res.params[p.param] = k
@@ -39,8 +42,8 @@ func (l *leaf) match(s string) match {
 }
 
 // assign creating route structure
-func (l *leaf) assign(r *Route, path string, params ...string) {
-	parts := strings.Split(strings.Trim(path, "/"), "/")
+func (l *leaf) assign(r *Route, params ...string) {
+	parts := strings.Split(strings.Trim(r.prefix, "/"), "/")
 	curPath := l
 	for k := range parts {
 		v := parts[k]
@@ -65,11 +68,19 @@ func (l *leaf) assign(r *Route, path string, params ...string) {
 
 	cp := curPath
 	for _, v := range params {
-		cp.leafs["*"] = &leaf{
-			param: v,
-			route: r,
-			leafs: leafs{},
+		if v == "**" {
+			cp.leafs["**"] = &leaf{
+				param: "**",
+				route: r,
+			}
+			break
+		} else {
+			cp.leafs["*"] = &leaf{
+				param: v,
+				route: r,
+				leafs: leafs{},
+			}
+			cp = cp.leafs["*"]
 		}
-		cp = cp.leafs["*"]
 	}
 }

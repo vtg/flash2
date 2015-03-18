@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"runtime"
 	"strings"
 	"testing"
@@ -26,7 +27,7 @@ func newRecorder() *httptest.ResponseRecorder {
 }
 
 func assertEqual(t *testing.T, expect interface{}, v interface{}) {
-	if v != expect {
+	if !reflect.DeepEqual(v, expect) {
 		_, fname, lineno, ok := runtime.Caller(1)
 		if !ok {
 			fname, lineno = "<UNKNOWN>", -1

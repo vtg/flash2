@@ -45,8 +45,9 @@ func (r *Route) Route(path string, f handlerFunc, funcs ...ReqFunc) {
 //
 func (r *Route) Resource(path string, i Ctr, funcs ...ReqFunc) {
 	route := r.NewRoute(path)
+	actions := implements(i)
 	route.ctr = func(params map[string]string) http.HandlerFunc {
-		return http.HandlerFunc(handleResource(i, params, implements(i), funcs...))
+		return http.HandlerFunc(handleResource(i, params, actions, funcs...))
 	}
 
 	route.router.tree.assign(route, "id", "action")

@@ -58,6 +58,26 @@ func TestRoutesOrder(t *testing.T) {
 	assertEqual(t, "/a/a", r.tree.match("/a/a/").route.prefix)
 }
 
+func TestRoutesTree(t *testing.T) {
+
+	r := NewRouter()
+	r.Resource("/a", &CT{})
+	r.Resource("/a/:sid/b", &CT{})
+
+	assertEqual(t, "/a", r.tree.match("/a").route.prefix)
+	assertEqual(t, map[string]string{}, r.tree.match("/a").params)
+	assertEqual(t, "/a", r.tree.match("/a/1/").route.prefix)
+	assertEqual(t, map[string]string{"id": "1"}, r.tree.match("/a/1").params)
+	assertEqual(t, "/a", r.tree.match("/a/1/e").route.prefix)
+	assertEqual(t, map[string]string{"id": "1", "action": "e"}, r.tree.match("/a/1/e").params)
+
+	assertEqual(t, "/a/:sid/b", r.tree.match("/a/1/b").route.prefix)
+	assertEqual(t, map[string]string{"sid": "1"}, r.tree.match("/a/1/b").params)
+	assertEqual(t, map[string]string{"sid": "1", "id": "2"}, r.tree.match("/a/1/b/2").params)
+	assertEqual(t, map[string]string{"sid": "1", "id": "2", "action": "act"}, r.tree.match("/a/1/b/2/act").params)
+	assertEqual(t, map[string]string{"sid": "1", "id": "2", "action": "act"}, r.tree.match("/a/1/b/2/act/1/3/4").params)
+}
+
 func setBanchMatch() *Router {
 	r := NewRouter()
 	p := r.PathPrefix("/api")

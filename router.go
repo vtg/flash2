@@ -1,14 +1,25 @@
 package flash
 
 import (
+	"log"
 	"net/http"
+	"os"
 	"reflect"
 	"strings"
+
+	"github.com/gorilla/handlers"
 )
 
 // Router stroring app routes structure
 type Router struct {
 	tree *leaf
+
+	// SSL defines server type (default none SSL)
+	SSL bool
+	// PublicKey for SSL processing
+	PublicKey string
+	// PrivateKey for SSL processing
+	PrivateKey string
 }
 
 // NewRouter creates new Router
@@ -67,6 +78,21 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		} else {
 			match.route.handler.ServeHTTP(w, req)
 		}
+	}
+}
+
+// Serve starting http server
+func (r *Router) Serve(bind string) {
+	var err error
+	if r.SSL {
+		log.Printf("Starting secure SSL Server on %s", bind)
+		err = http.ListenAndServeTLS(bind, r.PublicKey, r.PrivateKey, handlers.CombinedLoggingHandler(os.Stdout, r))
+	} else {
+		log.Printf("Starting Server on %s", bind)
+		err = http.ListenAndServe(bind, handlers.CombinedLoggingHandler(os.Stdout, r))
+	}
+	if err != nil {
+		log.Fatalf("Server start error: ", err)
 	}
 }
 

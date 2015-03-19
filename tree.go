@@ -22,17 +22,18 @@ func (l *leaf) match(s string) match {
 	res := match{params: make(map[string]string)}
 	params := []string{}
 
-	for _, k := range parts {
-		leaf, ok := l.leafs[k]
+	for k, part := range parts {
+		leaf, ok := l.leafs[part]
 		if !ok {
 			leaf, ok = l.leafs["*"]
 			if !ok {
 				if leaf, ok = l.leafs["**"]; ok {
 					l = leaf
+					params = append(params, strings.Join(parts[k:], "/"))
 				}
 				break
 			}
-			params = append(params, k)
+			params = append(params, part)
 		}
 		l = leaf
 	}
@@ -51,16 +52,23 @@ func (l *leaf) match(s string) match {
 // assign creating route structure
 func (l *leaf) assign(r *Route, params ...string) {
 	keys := []string{}
+	optional := []string{}
 	parts := strings.Split(strings.Trim(r.prefix, "/"), "/")
 	curPath := l
 
-	for k := range parts {
-		key := parts[k]
+	for _, key := range parts {
 		// check if part is a template
-		if parts[k] != "" {
-			if parts[k][0] == ':' {
+		if key != "" {
+			switch key[0] {
+			case ':':
+				keys = append(keys, key[1:])
 				key = "*"
-				keys = append(keys, parts[k][1:])
+			case '&':
+				optional = append(optional, key[1:])
+				continue
+			case '@':
+				optional = append(optional, key)
+				continue
 			}
 		}
 		_, ok := curPath.leafs[key]
@@ -73,22 +81,31 @@ func (l *leaf) assign(r *Route, params ...string) {
 	curPath.route = r
 	curPath.params = keys
 
+	if len(optional) > 0 {
+		params = append(optional, params...)
+	}
+
 	cp := curPath
-	for _, v := range params {
-		keys = append(keys, v)
-		if v == "**" {
-			cp.leafs["**"] = &leaf{
-				params: []string{"**"},
-				route:  r,
+	for _, key := range params {
+		if key != "" {
+			switch key[0] {
+			case '@':
+				keys = append(keys, key[1:])
+				cp.leafs["**"] = &leaf{
+					params: keys,
+					route:  r,
+				}
+				break
+			default:
+				keys = append(keys, key)
+				cp.leafs["*"] = &leaf{
+					params: keys,
+					route:  r,
+					leafs:  leafs{},
+				}
+				cp = cp.leafs["*"]
 			}
-			break
-		} else {
-			cp.leafs["*"] = &leaf{
-				params: keys,
-				route:  r,
-				leafs:  leafs{},
-			}
-			cp = cp.leafs["*"]
 		}
 	}
+
 }

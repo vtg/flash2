@@ -28,7 +28,7 @@ func TestTreeAssign(t *testing.T) {
 	assertEqual(t, "name", l.params[1])
 }
 
-func TestTreeAssignExtra(t *testing.T) {
+func TestTreeAssignOptional(t *testing.T) {
 	r := NewRouter()
 	r.tree.assign(&Route{prefix: "/index"}, "id", "name")
 	l := r.tree.leafs["index"]
@@ -37,6 +37,26 @@ func TestTreeAssignExtra(t *testing.T) {
 	assertEqual(t, []string{"id"}, l.params)
 	l = l.leafs["*"]
 	assertEqual(t, []string{"id", "name"}, l.params)
+
+	r = NewRouter()
+	r.tree.assign(&Route{prefix: "/index/&id/&name"})
+	l = r.tree.leafs["index"]
+	assertEqual(t, []string{}, l.params)
+	l = l.leafs["*"]
+	assertEqual(t, []string{"id"}, l.params)
+	l = l.leafs["*"]
+	assertEqual(t, []string{"id", "name"}, l.params)
+}
+
+func TestTreeAssignExtended(t *testing.T) {
+	r := NewRouter()
+	r.tree.assign(&Route{prefix: "/index/:id/@path"})
+	l := r.tree.leafs["index"]
+	assertEqual(t, []string(nil), l.params)
+	l = l.leafs["*"]
+	assertEqual(t, []string{"id"}, l.params)
+	l = l.leafs["**"]
+	assertEqual(t, []string{"id", "path"}, l.params)
 }
 
 func TestTreeAssignNested(t *testing.T) {
@@ -61,24 +81,51 @@ func TestTreeAssignNested(t *testing.T) {
 
 }
 
-func TestTreeExtras(t *testing.T) {
+func TestTreeOptional(t *testing.T) {
 	r := NewRouter()
 	r.tree.assign(&Route{prefix: "/index"}, "id", "action")
 
 	m := r.tree.match("/index/1/act")
 	assertEqual(t, "/index", m.route.prefix)
-	assertEqual(t, "1", m.params["id"])
-	assertEqual(t, "act", m.params["action"])
+	assertEqual(t, map[string]string{"id": "1", "action": "act"}, m.params)
 
 	m = r.tree.match("/index/1")
 	assertEqual(t, "/index", m.route.prefix)
-	assertEqual(t, "1", m.params["id"])
-	assertEqual(t, "", m.params["action"])
+	assertEqual(t, map[string]string{"id": "1"}, m.params)
 
 	m = r.tree.match("/index")
 	assertEqual(t, "/index", m.route.prefix)
-	assertEqual(t, "", m.params["id"])
-	assertEqual(t, "", m.params["action"])
+	assertEqual(t, map[string]string{}, m.params)
+
+	r = NewRouter()
+	r.tree.assign(&Route{prefix: "/index/&id/&action"})
+
+	m = r.tree.match("/index/1/act")
+	assertEqual(t, "/index/&id/&action", m.route.prefix)
+	assertEqual(t, map[string]string{"id": "1", "action": "act"}, m.params)
+
+	m = r.tree.match("/index/1")
+	assertEqual(t, "/index/&id/&action", m.route.prefix)
+	assertEqual(t, map[string]string{"id": "1"}, m.params)
+
+	m = r.tree.match("/index")
+	assertEqual(t, "/index/&id/&action", m.route.prefix)
+	assertEqual(t, map[string]string{}, m.params)
+}
+
+func TestTreeExtra(t *testing.T) {
+	r := NewRouter()
+	r.tree.assign(&Route{prefix: "/index/:id/@path"})
+
+	m := r.tree.match("/index/1/a/b/c")
+	assertEqual(t, map[string]string{"id": "1", "path": "a/b/c"}, m.params)
+
+	m = r.tree.match("/index/1")
+	assertEqual(t, map[string]string{"id": "1"}, m.params)
+
+	m = r.tree.match("/index")
+	assertEqual(t, (*Route)(nil), m.route)
+	assertEqual(t, map[string]string{}, m.params)
 }
 
 func TestTreeSubdir(t *testing.T) {

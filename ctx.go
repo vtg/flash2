@@ -17,6 +17,7 @@ type Req interface {
 	Var(string) interface{}
 	Param(string) string
 	Header(string) string
+	Cookie(string) string
 	RenderJSON(code int, s JSON)
 	RenderJSONError(code int, s string)
 }

@@ -85,6 +85,14 @@ func (c *Ctx) Header(s string) string {
 	return c.Req.Header.Get(s)
 }
 
+// Cookie returns request header
+func (c *Ctx) Cookie(s string) string {
+	if cookie, err := c.Req.Cookie(s); err == nil {
+		return cookie.Value
+	}
+	return ""
+}
+
 // RenderJSON rendering JSON to client
 func (c *Ctx) RenderJSON(code int, s JSON) {
 	if strings.Contains(c.Req.Header.Get("Accept-Encoding"), "gzip") {

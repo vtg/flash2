@@ -25,6 +25,27 @@ r.Resource("/pages", &PagesController{})
 r.HandleFunc("/", IndexHandler)
 ```
 
+URL Parameters:
+```go
+// prefixed with ':' are strict params. all parts should be present in request
+// strict params can't be used after optional or global params
+// Request: '/pages/1/act' Returns: [id:1, action:act]
+// Request: '/pages/1' Returns: not found
+"/pages/:id/:action"
+
+// prefixed with '&' are optional params. any or non can be present in request
+// Request: '/pages/1/act' Returns: [id:1, action:act]
+// Request: '/pages/1' Returns: [id:1]
+// Request: '/pages' Returns: []
+"/pages/&id/&action"
+
+// prefixed with '@' are global params. global param returns the rest of request
+// global param can only be used as last param
+// Request: '/files/path_to/file.go' Returns: [name:"path_to/file.go"]
+"/files/@name"
+```
+
+
 standard REST usage example:
 
 ```go

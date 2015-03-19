@@ -66,7 +66,7 @@ func (r *Route) Resource(path string, i Ctr, funcs ...ReqFunc) {
 //
 func (r *Route) FileServer(path string, b ...bool) {
 	route := r.Handler(fileServer(path, b))
-	route.router.tree.assign(route, "**")
+	route.router.tree.assign(route, "@file")
 }
 
 // NewRoute registers an empty route.

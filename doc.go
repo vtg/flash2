@@ -41,7 +41,7 @@
 //    }
 //
 //    // simple quthentication implementation
-//    func auth(c flash.Req) bool {
+//    func auth(c *flash.Ctx) bool {
 //      key := c.QueryParam("key")
 //      if key == "correct-password" {
 //        return true
@@ -75,7 +75,7 @@
 //
 //    // Pages used as controller
 //    type Pages struct {
-//      flash.Controller
+//      flash.Ctx
 //    }
 //
 //    // Index processed on GET /pages

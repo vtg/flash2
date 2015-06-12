@@ -74,7 +74,7 @@ func main() {
 }
 
 // simple authentication implementation
-func auth(c flash.Req) bool {
+func auth(c *flash.Ctx) bool {
 	key := c.QueryParam("key")
 	if key == "correct-password" {
 		return true
@@ -108,7 +108,7 @@ func insertPage(p Page) *Page {
 
 // Pages used as controller
 type Pages struct {
-	flash.Controller
+	flash.Ctx
 }
 
 // Index processed on GET /pages

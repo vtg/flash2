@@ -6,7 +6,7 @@ import (
 )
 
 // ReqFunc is the function type for middlware
-type ReqFunc func(Req) bool
+type ReqFunc func(*Ctx) bool
 
 // handlerFunc is the function type for routes
 type handlerFunc func(*Ctx)
@@ -18,7 +18,7 @@ type JSON map[string]interface{}
 func handleResource(t reflect.Type, params map[string]string, extras []string, funcs ...ReqFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		c := reflect.New(t)
-		ctr := c.Interface().(Ctr)
+		ctr := c.Interface().(Ctr).ctx()
 		ctr.init(w, req, params, extras)
 
 		for _, f := range funcs {
@@ -27,7 +27,7 @@ func handleResource(t reflect.Type, params map[string]string, extras []string, f
 			}
 		}
 
-		if method := c.MethodByName(ctr.CurrentAction()); method.IsValid() {
+		if method := c.MethodByName(ctr.Action); method.IsValid() {
 			method.Call([]reflect.Value{})
 		} else {
 			RenderJSONError(w, http.StatusBadRequest, "action not found")

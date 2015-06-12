@@ -1,6 +1,9 @@
 package flash
 
-import "net/http"
+import (
+	"net/http"
+	"reflect"
+)
 
 // Route storing route information
 type Route struct {
@@ -46,8 +49,9 @@ func (r *Route) Route(path string, f handlerFunc, funcs ...ReqFunc) {
 func (r *Route) Resource(path string, i Ctr, funcs ...ReqFunc) {
 	route := r.NewRoute(path)
 	actions := implements(i)
+	t := reflect.Indirect(reflect.ValueOf(i)).Type()
 	route.ctr = func(params map[string]string) http.HandlerFunc {
-		return http.HandlerFunc(handleResource(i, params, actions, funcs...))
+		return http.HandlerFunc(handleResource(t, params, actions, funcs...))
 	}
 
 	route.router.tree.assign(route, "id", "action")

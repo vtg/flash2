@@ -15,9 +15,8 @@ type handlerFunc func(*Ctx)
 type JSON map[string]interface{}
 
 // handleResource returns http handler function that will process controller actions
-func handleResource(i Ctr, params map[string]string, extras []string, funcs ...ReqFunc) http.HandlerFunc {
+func handleResource(t reflect.Type, params map[string]string, extras []string, funcs ...ReqFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
-		t := reflect.Indirect(reflect.ValueOf(i)).Type()
 		c := reflect.New(t)
 		ctr := c.Interface().(Ctr)
 		ctr.init(w, req, params, extras)

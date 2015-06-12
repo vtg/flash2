@@ -1,5 +1,6 @@
 package flash
 
+// makeAction creates action from URL
 func makeAction(method, id, action string, extras []string) string {
 
 	if id == "" {

@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"path"
 	"unicode"
+	"unicode/utf8"
 )
 
 func extractJSONPayload(data io.Reader, v interface{}) error {
@@ -15,12 +16,11 @@ func extractJSONPayload(data io.Reader, v interface{}) error {
 }
 
 func capitalize(s string) string {
-	if len(s) == 0 {
+	if s == "" {
 		return s
 	}
-	a := []rune(s)
-	a[0] = unicode.ToUpper(a[0])
-	return string(a)
+	r, n := utf8.DecodeRuneInString(s)
+	return string(unicode.ToUpper(r)) + s[n:]
 }
 
 // RenderJSONError common function to render error to client in JSON format

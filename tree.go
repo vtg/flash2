@@ -19,25 +19,34 @@ type match struct {
 }
 
 // match returns route if found and route params
-func (l *route) match(s string) match {
+func (l *route) match(meth, s string) match {
 	parts := strings.Split(strings.Trim(s, "/"), "/")
 	res := match{params: make(map[string]string)}
 	params := []string{}
 
+	var root *route
+	var ok bool
+
+	if root, ok = l.routes[meth]; !ok {
+		return res
+	}
+
+	l = root
+
 	for k, part := range parts {
-		route, ok := l.routes[part]
+		root, ok := l.routes[part]
 		if !ok {
-			route, ok = l.routes["*"]
+			root, ok = l.routes["*"]
 			if !ok {
-				if route, ok = l.routes["**"]; ok {
-					l = route
+				if root, ok = l.routes["**"]; ok {
+					l = root
 					params = append(params, strings.Join(parts[k:], "/"))
 				}
 				break
 			}
 			params = append(params, part)
 		}
-		l = route
+		l = root
 	}
 
 	res.route = l.route
@@ -55,7 +64,7 @@ func (l *route) match(s string) match {
 func (l *route) assign(meth string, r *Route, params ...string) {
 	keys := []string{}
 	optional := []string{}
-	parts := strings.Split(strings.Trim(r.prefix, "/"), "/")
+	parts := splitString(meth+"/"+r.prefix, "/")
 	curPath := l
 
 	for _, key := range parts {

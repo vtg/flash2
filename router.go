@@ -68,7 +68,7 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	match := r.tree.match(p)
+	match := r.tree.match(req.Method, p)
 
 	if match.route == nil {
 		http.NotFoundHandler().ServeHTTP(w, req)

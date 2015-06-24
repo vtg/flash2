@@ -128,10 +128,10 @@ func TestReponseShow(t *testing.T) {
 	assertEqual(t, "{\"page\":\"show\"}\n", string(rec.Body.Bytes()))
 }
 
-func TestReponseCreate(t *testing.T) {
-	rec := testReq(&TestC{}, newRequest("POST", "http://localhost/pages", `{"root":[{"id":1}]}`))
-	assertEqual(t, "{\"page\":[{\"id\":1}]}\n", string(rec.Body.Bytes()))
-}
+// func TestReponseCreate(t *testing.T) {
+// 	rec := testReq(&TestC{}, newRequest("POST", "http://localhost/pages", `{"root":[{"id":1}]}`))
+// 	assertEqual(t, "{\"page\":[{\"id\":1}]}\n", string(rec.Body.Bytes()))
+// }
 
 func TestReponseCollection(t *testing.T) {
 	rec := testReq(&TestC{}, newRequest("GET", "http://localhost/pages/collection", "{}"))

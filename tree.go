@@ -2,14 +2,16 @@ package flash
 
 import "strings"
 
-// leaf contains part of route
-type leaf struct {
+// type routes map[string]routes
+
+// route contains part of route
+type route struct {
 	route  *Route
 	params []string
-	leafs  leafs
+	routes routes
 }
 
-type leafs map[string]*leaf
+type routes map[string]*route
 
 type match struct {
 	route  *Route
@@ -17,25 +19,25 @@ type match struct {
 }
 
 // match returns route if found and route params
-func (l *leaf) match(s string) match {
+func (l *route) match(s string) match {
 	parts := strings.Split(strings.Trim(s, "/"), "/")
 	res := match{params: make(map[string]string)}
 	params := []string{}
 
 	for k, part := range parts {
-		leaf, ok := l.leafs[part]
+		route, ok := l.routes[part]
 		if !ok {
-			leaf, ok = l.leafs["*"]
+			route, ok = l.routes["*"]
 			if !ok {
-				if leaf, ok = l.leafs["**"]; ok {
-					l = leaf
+				if route, ok = l.routes["**"]; ok {
+					l = route
 					params = append(params, strings.Join(parts[k:], "/"))
 				}
 				break
 			}
 			params = append(params, part)
 		}
-		l = leaf
+		l = route
 	}
 
 	res.route = l.route
@@ -50,7 +52,7 @@ func (l *leaf) match(s string) match {
 }
 
 // assign creating route structure
-func (l *leaf) assign(r *Route, params ...string) {
+func (l *route) assign(r *Route, params ...string) {
 	keys := []string{}
 	optional := []string{}
 	parts := strings.Split(strings.Trim(r.prefix, "/"), "/")
@@ -71,11 +73,11 @@ func (l *leaf) assign(r *Route, params ...string) {
 				continue
 			}
 		}
-		_, ok := curPath.leafs[key]
+		_, ok := curPath.routes[key]
 		if !ok {
-			curPath.leafs[key] = &leaf{leafs: leafs{}}
+			curPath.routes[key] = &route{routes: routes{}}
 		}
-		curPath = curPath.leafs[key]
+		curPath = curPath.routes[key]
 	}
 
 	curPath.route = r
@@ -91,19 +93,19 @@ func (l *leaf) assign(r *Route, params ...string) {
 			switch key[0] {
 			case '@':
 				keys = append(keys, key[1:])
-				cp.leafs["**"] = &leaf{
+				cp.routes["**"] = &route{
 					params: keys,
 					route:  r,
 				}
 				break
 			default:
 				keys = append(keys, key)
-				cp.leafs["*"] = &leaf{
+				cp.routes["*"] = &route{
 					params: keys,
 					route:  r,
-					leafs:  leafs{},
+					routes: routes{},
 				}
-				cp = cp.leafs["*"]
+				cp = cp.routes["*"]
 			}
 		}
 	}

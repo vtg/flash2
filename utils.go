@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"path"
+	"strings"
 	"unicode"
 	"unicode/utf8"
 )
@@ -66,3 +67,38 @@ func cleanPath(p string) string {
 	}
 	return np
 }
+
+func method(s string) uint8 {
+	switch s {
+	case "GET":
+		return 1
+	case "POST":
+		return 2
+	case "PUT", "PATCH":
+		return 3
+	case "DELETE":
+		return 4
+	}
+	return 0
+}
+
+func splitString(s, d string) (res []string) {
+	parts := strings.Split(s, d)
+	for _, v := range parts {
+		if v != "" {
+			res = append(res, v)
+		}
+	}
+	return
+}
+
+//    meths := methods(a)
+//    fmt.Println(meths)
+
+// t := reflect.ValueOf(a)
+// for _,v := range meths {
+// 	m := t.MethodByName(v).Interface()
+// 	if f,ok := m.(func(string)); ok {
+// 	    print(f)
+// 	}
+// }

@@ -18,11 +18,11 @@ func TestTreeSimple(t *testing.T) {
 func TestTreeAssign(t *testing.T) {
 	r := NewRouter()
 	r.tree.assign(&Route{prefix: "/index/:id/:name"})
-	l := r.tree.leafs["index"]
+	l := r.tree.routes["index"]
 	assertEqual(t, 0, len(l.params))
-	l = l.leafs["*"]
+	l = l.routes["*"]
 	assertEqual(t, 0, len(l.params))
-	l = l.leafs["*"]
+	l = l.routes["*"]
 	assertEqual(t, 2, len(l.params))
 	assertEqual(t, "id", l.params[0])
 	assertEqual(t, "name", l.params[1])
@@ -31,31 +31,31 @@ func TestTreeAssign(t *testing.T) {
 func TestTreeAssignOptional(t *testing.T) {
 	r := NewRouter()
 	r.tree.assign(&Route{prefix: "/index"}, "id", "name")
-	l := r.tree.leafs["index"]
+	l := r.tree.routes["index"]
 	assertEqual(t, []string{}, l.params)
-	l = l.leafs["*"]
+	l = l.routes["*"]
 	assertEqual(t, []string{"id"}, l.params)
-	l = l.leafs["*"]
+	l = l.routes["*"]
 	assertEqual(t, []string{"id", "name"}, l.params)
 
 	r = NewRouter()
 	r.tree.assign(&Route{prefix: "/index/&id/&name"})
-	l = r.tree.leafs["index"]
+	l = r.tree.routes["index"]
 	assertEqual(t, []string{}, l.params)
-	l = l.leafs["*"]
+	l = l.routes["*"]
 	assertEqual(t, []string{"id"}, l.params)
-	l = l.leafs["*"]
+	l = l.routes["*"]
 	assertEqual(t, []string{"id", "name"}, l.params)
 }
 
 func TestTreeAssignExtended(t *testing.T) {
 	r := NewRouter()
 	r.tree.assign(&Route{prefix: "/index/:id/@path"})
-	l := r.tree.leafs["index"]
+	l := r.tree.routes["index"]
 	assertEqual(t, []string(nil), l.params)
-	l = l.leafs["*"]
+	l = l.routes["*"]
 	assertEqual(t, []string{"id"}, l.params)
-	l = l.leafs["**"]
+	l = l.routes["**"]
 	assertEqual(t, []string{"id", "path"}, l.params)
 }
 
@@ -64,19 +64,19 @@ func TestTreeAssignNested(t *testing.T) {
 	r.tree.assign(&Route{prefix: "/index"}, "id", "action")
 	r.tree.assign(&Route{prefix: "/index/:sid/a"}, "id", "action")
 
-	l := r.tree.leafs["index"]
+	l := r.tree.routes["index"]
 	assertEqual(t, []string{}, l.params)
-	l = l.leafs["*"]
+	l = l.routes["*"]
 	assertEqual(t, []string{"id"}, l.params)
 
-	l1 := l.leafs["a"]
+	l1 := l.routes["a"]
 	assertEqual(t, []string{"sid"}, l1.params)
-	l1 = l1.leafs["*"]
+	l1 = l1.routes["*"]
 	assertEqual(t, []string{"sid", "id"}, l1.params)
-	l1 = l1.leafs["*"]
+	l1 = l1.routes["*"]
 	assertEqual(t, []string{"sid", "id", "action"}, l1.params)
 
-	l = l.leafs["*"]
+	l = l.routes["*"]
 	assertEqual(t, []string{"id", "action"}, l.params)
 
 }

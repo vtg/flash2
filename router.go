@@ -12,7 +12,7 @@ import (
 
 // Router stroring app routes structure
 type Router struct {
-	tree *leaf
+	tree route
 
 	// SSL defines server type (default none SSL)
 	SSL bool
@@ -24,7 +24,7 @@ type Router struct {
 
 // NewRouter creates new Router
 func NewRouter() *Router {
-	return &Router{tree: &leaf{leafs: make(leafs)}}
+	return &Router{tree: route{routes: make(routes)}}
 }
 
 // HandleFunc registers a new route with a matcher for the URL path.

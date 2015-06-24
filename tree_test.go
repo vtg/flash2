@@ -4,7 +4,7 @@ import "testing"
 
 func TestTreeSimple(t *testing.T) {
 	r := NewRouter()
-	r.tree.assign(&Route{prefix: "/index/:id/:name"})
+	r.tree.assign("GET", &Route{prefix: "/index/:id/:name"})
 
 	m := r.tree.match("/index/1/act")
 	assertEqual(t, "/index/:id/:name", m.route.prefix)
@@ -17,7 +17,7 @@ func TestTreeSimple(t *testing.T) {
 
 func TestTreeAssign(t *testing.T) {
 	r := NewRouter()
-	r.tree.assign(&Route{prefix: "/index/:id/:name"})
+	r.tree.assign("GET", &Route{prefix: "/index/:id/:name"})
 	l := r.tree.routes["index"]
 	assertEqual(t, 0, len(l.params))
 	l = l.routes["*"]
@@ -30,7 +30,7 @@ func TestTreeAssign(t *testing.T) {
 
 func TestTreeAssignOptional(t *testing.T) {
 	r := NewRouter()
-	r.tree.assign(&Route{prefix: "/index"}, "id", "name")
+	r.tree.assign("GET", &Route{prefix: "/index"}, "id", "name")
 	l := r.tree.routes["index"]
 	assertEqual(t, []string{}, l.params)
 	l = l.routes["*"]
@@ -39,7 +39,7 @@ func TestTreeAssignOptional(t *testing.T) {
 	assertEqual(t, []string{"id", "name"}, l.params)
 
 	r = NewRouter()
-	r.tree.assign(&Route{prefix: "/index/&id/&name"})
+	r.tree.assign("GET", &Route{prefix: "/index/&id/&name"})
 	l = r.tree.routes["index"]
 	assertEqual(t, []string{}, l.params)
 	l = l.routes["*"]
@@ -50,7 +50,7 @@ func TestTreeAssignOptional(t *testing.T) {
 
 func TestTreeAssignExtended(t *testing.T) {
 	r := NewRouter()
-	r.tree.assign(&Route{prefix: "/index/:id/@path"})
+	r.tree.assign("GET", &Route{prefix: "/index/:id/@path"})
 	l := r.tree.routes["index"]
 	assertEqual(t, []string(nil), l.params)
 	l = l.routes["*"]
@@ -61,8 +61,8 @@ func TestTreeAssignExtended(t *testing.T) {
 
 func TestTreeAssignNested(t *testing.T) {
 	r := NewRouter()
-	r.tree.assign(&Route{prefix: "/index"}, "id", "action")
-	r.tree.assign(&Route{prefix: "/index/:sid/a"}, "id", "action")
+	r.tree.assign("GET", &Route{prefix: "/index"}, "id", "action")
+	r.tree.assign("GET", &Route{prefix: "/index/:sid/a"}, "id", "action")
 
 	l := r.tree.routes["index"]
 	assertEqual(t, []string{}, l.params)
@@ -83,7 +83,7 @@ func TestTreeAssignNested(t *testing.T) {
 
 func TestTreeOptional(t *testing.T) {
 	r := NewRouter()
-	r.tree.assign(&Route{prefix: "/index"}, "id", "action")
+	r.tree.assign("GET", &Route{prefix: "/index"}, "id", "action")
 
 	m := r.tree.match("/index/1/act")
 	assertEqual(t, "/index", m.route.prefix)
@@ -98,7 +98,7 @@ func TestTreeOptional(t *testing.T) {
 	assertEqual(t, map[string]string{}, m.params)
 
 	r = NewRouter()
-	r.tree.assign(&Route{prefix: "/index/&id/&action"})
+	r.tree.assign("GET", &Route{prefix: "/index/&id/&action"})
 
 	m = r.tree.match("/index/1/act")
 	assertEqual(t, "/index/&id/&action", m.route.prefix)
@@ -115,7 +115,7 @@ func TestTreeOptional(t *testing.T) {
 
 func TestTreeExtra(t *testing.T) {
 	r := NewRouter()
-	r.tree.assign(&Route{prefix: "/index/:id/@path"})
+	r.tree.assign("GET", &Route{prefix: "/index/:id/@path"})
 
 	m := r.tree.match("/index/1/a/b/c")
 	assertEqual(t, map[string]string{"id": "1", "path": "a/b/c"}, m.params)
@@ -130,7 +130,7 @@ func TestTreeExtra(t *testing.T) {
 
 func TestTreeSubdir(t *testing.T) {
 	r := NewRouter()
-	r.tree.assign(&Route{prefix: "/images"}, "**")
+	r.tree.assign("GET", &Route{prefix: "/images"}, "**")
 
 	m := r.tree.match("/images/image.gif")
 	assertEqual(t, "/images", m.route.prefix)

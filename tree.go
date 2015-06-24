@@ -52,7 +52,7 @@ func (l *route) match(s string) match {
 }
 
 // assign creating route structure
-func (l *route) assign(r *Route, params ...string) {
+func (l *route) assign(meth string, r *Route, params ...string) {
 	keys := []string{}
 	optional := []string{}
 	parts := strings.Split(strings.Trim(r.prefix, "/"), "/")

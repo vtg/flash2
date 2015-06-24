@@ -54,7 +54,7 @@ func (r *Route) Resource(path string, i Ctr, funcs ...ReqFunc) {
 		return http.HandlerFunc(handleResource(t, params, actions, funcs...))
 	}
 
-	route.router.tree.assign(route, "id", "action")
+	route.router.tree.assign("GET", route, "id", "action")
 }
 
 // FileServer provides static files serving
@@ -70,7 +70,7 @@ func (r *Route) Resource(path string, i Ctr, funcs ...ReqFunc) {
 //
 func (r *Route) FileServer(path string, b ...bool) {
 	route := r.Handler(fileServer(path, b))
-	route.router.tree.assign(route, "@file")
+	route.router.tree.assign("GET", route, "@file")
 }
 
 // NewRoute registers an empty route.
@@ -90,5 +90,5 @@ func (r *Route) HandlerFunc(f func(http.ResponseWriter, *http.Request)) *Route {
 }
 
 func (r *Route) addRoute() {
-	r.router.tree.assign(r)
+	r.router.tree.assign("GET", r)
 }

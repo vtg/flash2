@@ -1,14 +1,22 @@
 package flash
 
 import (
+	"compress/gzip"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
 )
+
+type jsonErrors struct {
+	Errors errorMessages `json:"errors"`
+}
+
+type errorMessages struct {
+	Messages []string `json:"message"`
+}
 
 // MWFunc is the function type for middlware
 type MWFunc func(*Ctx) bool
@@ -107,6 +115,11 @@ func (c *Ctx) Header(s string) string {
 	return c.Req.Header.Get(s)
 }
 
+// SetHeader adds header to response
+func (c *Ctx) SetHeader(key, value string) {
+	c.W.Header().Set(key, value)
+}
+
 // Cookie returns request header
 func (c *Ctx) Cookie(s string) string {
 	if cookie, err := c.Req.Cookie(s); err == nil {
@@ -116,17 +129,33 @@ func (c *Ctx) Cookie(s string) string {
 }
 
 // RenderJSON rendering JSON to client
-func (c *Ctx) RenderJSON(code int, s JSON) {
-	if strings.Contains(c.Req.Header.Get("Accept-Encoding"), "gzip") {
-		RenderJSONgzip(c.W, code, s)
+func (c *Ctx) RenderJSON(code int, i interface{}) {
+	var b []byte
+	var err error
+
+	if b, err = json.Marshal(i); err != nil {
+		c.RenderJSONError(500, err.Error())
 		return
+		// log.Println("JSON Encoding error:", err)
 	}
-	RenderJSON(c.W, code, s)
+
+	c.W.Header().Set("Content-Type", "application/json; charset=utf-8")
+	c.W.WriteHeader(code)
+
+	// gzip content if length > 5kb and client accepts gzip
+	if len(b) > 5000 && strings.Contains(c.Req.Header.Get("Accept-Encoding"), "gzip") {
+		c.W.Header().Set("Content-Encoding", "gzip")
+		gz := gzip.NewWriter(c.W)
+		defer gz.Close()
+		gz.Write(b)
+	} else {
+		c.W.Write(b)
+	}
 }
 
 // RenderJSONError rendering error to client in JSON format
 func (c *Ctx) RenderJSONError(code int, s string) {
-	c.RenderJSON(code, JSON{"errors": JSON{"message": []string{s}}})
+	c.RenderJSON(code, jsonErrors{Errors: errorMessages{Messages: []string{s}}})
 }
 
 // RenderString rendering string to client
@@ -154,7 +183,7 @@ func (c *Ctx) LoadFile(field, dir string) (string, error) {
 		return "", err
 	}
 	defer file.Close()
-	fmt.Fprintf(c.W, "%v", handler.Header)
+	// fmt.Fprintf(c.W, "%v", handler.Header)
 	f, err := os.OpenFile(dir+handler.Filename, os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
 		return "", err

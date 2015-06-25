@@ -87,47 +87,47 @@ func TestController(t *testing.T) {
 	req := newRequest("GET", "http://localhost/api/pages/", "{}")
 	w := newRecorder()
 	r.ServeHTTP(w, req)
-	assertEqual(t, `{"action":"index"}`+"\n", w.Body.String())
+	assertEqual(t, `{"action":"index"}`, w.Body.String())
 
 	req = newRequest("POST", "http://localhost/api/pages/", `{"root": 1}`)
 	w = newRecorder()
 	r.ServeHTTP(w, req)
-	assertEqual(t, `{"action":"create","received":{"root":1}}`+"\n", w.Body.String())
+	assertEqual(t, `{"action":"create","received":{"root":1}}`, w.Body.String())
 
 	req = newRequest("GET", "http://localhost/api/pages/1", "{}")
 	w = newRecorder()
 	r.ServeHTTP(w, req)
-	assertEqual(t, `{"action":"show","id":"1"}`+"\n", w.Body.String())
+	assertEqual(t, `{"action":"show","id":"1"}`, w.Body.String())
 
 	req = newRequest("PUT", "http://localhost/api/pages/1", "{}")
 	w = newRecorder()
 	r.ServeHTTP(w, req)
-	assertEqual(t, `{"action":"update","id":"1"}`+"\n", w.Body.String())
+	assertEqual(t, `{"action":"update","id":"1"}`, w.Body.String())
 
 	req = newRequest("DELETE", "http://localhost/api/pages/1", "{}")
 	w = newRecorder()
 	r.ServeHTTP(w, req)
-	assertEqual(t, `{"action":"delete","id":"1"}`+"\n", w.Body.String())
+	assertEqual(t, `{"action":"delete","id":"1"}`, w.Body.String())
 
 	req = newRequest("GET", "http://localhost/api/pages/extra", "{}")
 	w = newRecorder()
 	r.ServeHTTP(w, req)
-	assertEqual(t, `{"action":"extraget","id":""}`+"\n", w.Body.String())
+	assertEqual(t, `{"action":"extraget","id":""}`, w.Body.String())
 
 	req = newRequest("GET", "http://localhost/api/pages/1/extra", "{}")
 	w = newRecorder()
 	r.ServeHTTP(w, req)
-	assertEqual(t, `{"action":"extraget","id":"1"}`+"\n", w.Body.String())
+	assertEqual(t, `{"action":"extraget","id":"1"}`, w.Body.String())
 
 	req = newRequest("POST", "http://localhost/api/pages/extra", "{}")
 	w = newRecorder()
 	r.ServeHTTP(w, req)
-	assertEqual(t, `{"action":"extrapost","id":""}`+"\n", w.Body.String())
+	assertEqual(t, `{"action":"extrapost","id":""}`, w.Body.String())
 
 	req = newRequest("POST", "http://localhost/api/pages/1/extra", "{}")
 	w = newRecorder()
 	r.ServeHTTP(w, req)
-	assertEqual(t, `{"action":"extrapost","id":"1"}`+"\n", w.Body.String())
+	assertEqual(t, `{"action":"extrapost","id":"1"}`, w.Body.String())
 }
 
 func BenchmarkHandleIndex(b *testing.B) {

@@ -12,12 +12,12 @@ type handFunc func(map[string]string) http.Handler
 
 // NewRouter creates new Router
 func NewRouter() *Router {
-	return &Router{tree: make(routes)}
+	return &Router{routes: make(routes)}
 }
 
 // Router stroring app routes structure
 type Router struct {
-	tree routes
+	routes routes
 
 	// SSL defines server type (default none SSL)
 	SSL bool
@@ -84,7 +84,7 @@ func (r *Router) PathPrefix(s string) *Route {
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	defer req.Body.Close()
 
-	h := r.tree.match(req.Method, req.URL.Path)
+	h := r.routes.match(req.Method, req.URL.Path)
 	if h != nil {
 		h.ServeHTTP(w, req)
 	} else {

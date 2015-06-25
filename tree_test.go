@@ -14,8 +14,8 @@ func testH(p map[string]string) http.Handler {
 
 func TestTreeAssign(t *testing.T) {
 	r := NewRouter()
-	r.tree.assign("GET", "/api/pages", testH)
-	l := r.tree["GET"]
+	r.routes.assign("GET", "/api/pages", testH)
+	l := r.routes["GET"]
 	assertNil(t, l.f)
 	l = l.routes["api"]
 	assertNil(t, l.f)
@@ -25,18 +25,18 @@ func TestTreeAssign(t *testing.T) {
 
 func TestTreeMatch(t *testing.T) {
 	r := NewRouter()
-	r.tree.assign("GET", "/api/pages", testH)
-	r.tree.assign("GET", "/api/pages/:id", testH)
-	r.tree.assign("GET", "/api/pages/:id/hello", testH)
-	r.tree.assign("GET", "/images/@file", testH)
-	assertNotNil(t, r.tree.match("GET", "/api/pages"))
-	assertNil(t, r.tree.match("POST", "/api/pages"))
-	assertNotNil(t, r.tree.match("GET", "/api/pages/1"))
-	assertNotNil(t, r.tree.match("GET", "/api/pages/1/hello"))
-	assertNil(t, r.tree.match("GET", "/api/page"))
-	assertNil(t, r.tree.match("GET", "/api/page/1"))
-	assertNil(t, r.tree.match("GET", "/api/pages/1/wrongAction"))
-	assertNotNil(t, r.tree.match("GET", "/images/1"))
+	r.routes.assign("GET", "/api/pages", testH)
+	r.routes.assign("GET", "/api/pages/:id", testH)
+	r.routes.assign("GET", "/api/pages/:id/hello", testH)
+	r.routes.assign("GET", "/images/@file", testH)
+	assertNotNil(t, r.routes.match("GET", "/api/pages"))
+	assertNil(t, r.routes.match("POST", "/api/pages"))
+	assertNotNil(t, r.routes.match("GET", "/api/pages/1"))
+	assertNotNil(t, r.routes.match("GET", "/api/pages/1/hello"))
+	assertNil(t, r.routes.match("GET", "/api/page"))
+	assertNil(t, r.routes.match("GET", "/api/page/1"))
+	assertNil(t, r.routes.match("GET", "/api/pages/1/wrongAction"))
+	assertNotNil(t, r.routes.match("GET", "/images/1"))
 }
 
 func setBanchMatch() *Router {
@@ -53,20 +53,20 @@ func setBanchMatch() *Router {
 func BenchmarkMatchFound1st(b *testing.B) {
 	r := setBanchMatch()
 	for n := 0; n < b.N; n++ {
-		r.tree.match("GET", "/api/pages0/1")
+		r.routes.match("GET", "/api/pages0/1")
 	}
 }
 
 func BenchmarkMatchFoundLast(b *testing.B) {
 	r := setBanchMatch()
 	for n := 0; n < b.N; n++ {
-		r.tree.match("GET", "/api/pages100/1")
+		r.routes.match("GET", "/api/pages100/1")
 	}
 }
 
 func BenchmarkMatchNotFound(b *testing.B) {
 	r := setBanchMatch()
 	for n := 0; n < b.N; n++ {
-		r.tree.match("GET", "/api/pag/1")
+		r.routes.match("GET", "/api/pag/1")
 	}
 }

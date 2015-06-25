@@ -22,7 +22,7 @@ func (r *Route) NewRoute(prefix string) *Route {
 // HandleFunc setting function to handle route
 func (r *Route) HandleFunc(s string, f func(http.ResponseWriter, *http.Request)) {
 	hf := func(params map[string]string) http.Handler { return http.Handler(http.HandlerFunc(f)) }
-	r.router.tree.assign("GET", cleanPath(r.prefix+s), hf)
+	r.router.routes.assign("GET", cleanPath(r.prefix+s), hf)
 }
 
 // Route registers a new route with a matcher for URL path
@@ -39,7 +39,7 @@ func (r *Route) Route(method, path string, f handlerFunc, funcs ...MWFunc) {
 		return http.Handler(http.HandlerFunc(handleRoute(f, params, funcs...)))
 	}
 	// fmt.Println(method, cleanPath(r.prefix+path))
-	r.router.tree.assign(method, cleanPath(r.prefix+path), hf)
+	r.router.routes.assign(method, cleanPath(r.prefix+path), hf)
 }
 
 // Get shorthand for Route("GET", ...)
@@ -114,13 +114,13 @@ func (r *Route) Controller(path string, controller interface{}, funcs ...MWFunc)
 //
 func (r *Route) FileServer(path string, b ...bool) {
 	hf := func(params map[string]string) http.Handler { return fileServer(path, b) }
-	r.router.tree.assign("GET", cleanPath(r.prefix+"/@file"), hf)
+	r.router.routes.assign("GET", cleanPath(r.prefix+"/@file"), hf)
 }
 
 // Handle adding new route with handler
 func (r *Route) Handle(path string, handler http.Handler) {
 	hf := func(params map[string]string) http.Handler { return handler }
-	r.router.tree.assign("GET", cleanPath(r.prefix+path), hf)
+	r.router.routes.assign("GET", cleanPath(r.prefix+path), hf)
 }
 
 var httpMethods = []string{"GET", "POST", "PUT", "PATCH", "DELETE"}

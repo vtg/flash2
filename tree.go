@@ -23,7 +23,7 @@ type routes map[string]*route
 
 // match returns route if found and route params
 func (l routes) match(meth, s string) http.Handler {
-	keys := splitString(s, "/")
+	keys := strings.Split(s, "/")
 	// fmt.Println("2:", meth, s, keys)
 	params := make(map[string]string)
 
@@ -34,20 +34,22 @@ func (l routes) match(meth, s string) http.Handler {
 
 	r := root
 	for idx, key := range keys {
-		r1, ok := r.routes[key]
-		if !ok {
-			r1, ok = r.routes["*"]
+		if key != "" {
+			r1, ok := r.routes[key]
 			if !ok {
-				if r1, ok = r.routes["**"]; ok {
-					params[r1.paramName] = strings.Join(keys[idx:], "/")
-					break
+				r1, ok = r.routes["*"]
+				if !ok {
+					if r1, ok = r.routes["**"]; ok {
+						params[r1.paramName] = strings.Join(keys[idx:], "/")
+						break
+					}
+				}
+				if r1 != nil {
+					params[r1.paramName] = key
 				}
 			}
-			if r1 != nil {
-				params[r1.paramName] = key
-			}
+			r = r1
 		}
-		r = r1
 	}
 	if r != nil && r.f != nil {
 		return r.f(params)
@@ -58,7 +60,7 @@ func (l routes) match(meth, s string) http.Handler {
 
 // assign adds route structure to routes
 func (l routes) assign(meth, path string, f handFunc) {
-	parts := splitString(path, "/")
+	parts := strings.Split(path, "/")
 
 	if _, ok := l[meth]; !ok {
 		l[meth] = &route{routes: routes{}}
@@ -66,13 +68,15 @@ func (l routes) assign(meth, path string, f handFunc) {
 
 	r := l[meth]
 	for _, key := range parts {
-		name, param := keyParams(key)
-		if _, ok := r.routes[name]; !ok {
-			r.routes[name] = &route{paramName: param, routes: routes{}}
-		}
-		r = r.routes[name]
-		if name == "**" {
-			break
+		if key != "" {
+			name, param := keyParams(key)
+			if _, ok := r.routes[name]; !ok {
+				r.routes[name] = &route{paramName: param, routes: routes{}}
+			}
+			r = r.routes[name]
+			if name == "**" {
+				break
+			}
 		}
 	}
 	r.f = f

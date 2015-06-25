@@ -64,11 +64,11 @@ func (r *Router) Delete(path string, f handlerFunc, funcs ...MWFunc) {
 	r.NewRoute("").Delete(path, f, funcs...)
 }
 
-// // Resource registers a new Resource with a matcher for URL path
-// // and registering controller handler
-// func (r *Router) Resource(path string, i Ctr, funcs ...MWFunc) {
-// 	r.NewRoute("").Resource(path, i, funcs...)
-// }
+// Controller registers a new Controller with a matcher for URL path
+// See Route.Controller()
+func (r *Router) Controller(path string, i interface{}, funcs ...MWFunc) {
+	r.NewRoute("").Controller(path, i, funcs...)
+}
 
 // Handle registers a new handler to serve path
 func (r *Router) Handle(path string, handler http.Handler) {
@@ -82,12 +82,7 @@ func (r *Router) PathPrefix(s string) *Route {
 
 // ServeHTTP dispatches the handler registered in the matched route.
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	p := cleanPath(req.URL.Path)
-	if p != req.URL.Path {
-		http.Redirect(w, req, p, http.StatusMovedPermanently)
-		return
-	}
-	h := r.tree.match(req.Method, p)
+	h := r.tree.match(req.Method, req.URL.Path)
 	if h != nil {
 		h.ServeHTTP(w, req)
 	} else {

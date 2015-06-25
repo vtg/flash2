@@ -8,21 +8,10 @@ import (
 	"net/http"
 	"path"
 	"reflect"
-	"strings"
-	"unicode"
-	"unicode/utf8"
 )
 
 func extractJSONPayload(data io.Reader, v interface{}) error {
 	return json.NewDecoder(data).Decode(&v)
-}
-
-func capitalize(s string) string {
-	if s == "" {
-		return s
-	}
-	r, n := utf8.DecodeRuneInString(s)
-	return string(unicode.ToUpper(r)) + s[n:]
 }
 
 // RenderJSONError common function to render error to client in JSON format
@@ -83,16 +72,6 @@ func method(s string) uint8 {
 	return 0
 }
 
-func splitString(s, d string) (res []string) {
-	parts := strings.Split(s, d)
-	for _, v := range parts {
-		if v != "" {
-			res = append(res, v)
-		}
-	}
-	return
-}
-
 func methods(i interface{}) []string {
 	res := []string{}
 	t := reflect.TypeOf(i)
@@ -101,14 +80,3 @@ func methods(i interface{}) []string {
 	}
 	return res
 }
-
-//    meths := methods(a)
-//    fmt.Println(meths)
-
-// t := reflect.ValueOf(a)
-// for _,v := range meths {
-// 	m := t.MethodByName(v).Interface()
-// 	if f,ok := m.(func(string)); ok {
-// 	    print(f)
-// 	}
-// }

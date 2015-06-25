@@ -38,7 +38,9 @@ func (c C) Show(ctx *Ctx) {
 }
 
 func (c C) Create(ctx *Ctx) {
-	ctx.RenderJSON(200, JSON{"action": "create"})
+	var i interface{}
+	ctx.LoadJSONRequest("root", &i)
+	ctx.RenderJSON(200, JSON{"action": "create", "received": i})
 }
 
 func (c C) Update(ctx *Ctx) {
@@ -61,6 +63,10 @@ func (c C) ExtraPOST(ctx *Ctx) {
 	ctx.RenderJSON(200, JSON{"action": "extrapost", "id": id})
 }
 
+func (c C) Index1GET(ctx *Ctx) {
+	ctx.RenderString(200, "index")
+}
+
 func TestController(t *testing.T) {
 	r := NewRouter()
 	p := r.PathPrefix("/api")
@@ -71,10 +77,10 @@ func TestController(t *testing.T) {
 	r.ServeHTTP(w, req)
 	assertEqual(t, `{"action":"index"}`+"\n", w.Body.String())
 
-	req = newRequest("POST", "http://localhost/api/pages/", "{}")
+	req = newRequest("POST", "http://localhost/api/pages/", `{"root": 1}`)
 	w = newRecorder()
 	r.ServeHTTP(w, req)
-	assertEqual(t, `{"action":"create"}`+"\n", w.Body.String())
+	assertEqual(t, `{"action":"create","received":1}`+"\n", w.Body.String())
 
 	req = newRequest("GET", "http://localhost/api/pages/1", "{}")
 	w = newRecorder()
@@ -112,22 +118,59 @@ func TestController(t *testing.T) {
 	assertEqual(t, `{"action":"extrapost","id":"1"}`+"\n", w.Body.String())
 }
 
-// func TestRouteLeafs(t *testing.T) {
-// 	r := NewRouter()
-// 	p := r.PathPrefix("/api")
-// 	p.Route("/pages/:id/:action", RouteHandler)
-// 	p.Route("/pages/:id", RouteHandler)
+func BenchmarkHandleIndex(b *testing.B) {
+	r := NewRouter()
+	r.Controller("/pages", C{})
 
-// 	res := r.tree.match("GET", "/api/pages/1/active")
-// 	assertEqual(t, "/api/pages/:id/:action", res.route.prefix)
-// 	assertEqual(t, "1", res.params["id"])
-// 	assertEqual(t, "active", res.params["action"])
+	req := newRequest("GET", "http://localhost/pages/", "{}")
+	w := newRecorder()
 
-// 	res = r.tree.match("GET", "/api/pages/1")
-// 	assertEqual(t, "/api/pages/:id", res.route.prefix)
-// 	assertEqual(t, "1", res.params["id"])
-// 	assertEqual(t, "", res.params["action"])
+	for n := 0; n < b.N; n++ {
+		r.ServeHTTP(w, req)
+	}
+}
 
-// 	res = r.tree.match("GET", "/api/pages")
-// 	assertEqual(t, true, res.route == nil)
-// }
+func BenchmarkHandleIndex1(b *testing.B) {
+	r := NewRouter()
+	r.Controller("/pages", C{})
+
+	req := newRequest("GET", "http://localhost/pages/index1", "{}")
+	w := newRecorder()
+
+	for n := 0; n < b.N; n++ {
+		r.ServeHTTP(w, req)
+	}
+}
+
+func BenchmarkHandleShow(b *testing.B) {
+	r := NewRouter()
+	r.Controller("/pages", C{})
+	w := newRecorder()
+	req := newRequest("GET", "http://localhost/pages/10", "{}")
+
+	for n := 0; n < b.N; n++ {
+		r.ServeHTTP(w, req)
+	}
+}
+
+func BenchmarkHandleCreate(b *testing.B) {
+	r := NewRouter()
+	r.Controller("/pages", C{})
+	w := newRecorder()
+	req := newRequest("POST", "http://localhost/pages/", `{"root":[{"id":1}]}`)
+
+	for n := 0; n < b.N; n++ {
+		r.ServeHTTP(w, req)
+	}
+}
+
+func BenchmarkHandle404(b *testing.B) {
+	r := NewRouter()
+	r.Controller("/pages", C{})
+	w := newRecorder()
+	req := newRequest("GET", "http://localhost/pages1/", "{}")
+
+	for n := 0; n < b.N; n++ {
+		r.ServeHTTP(w, req)
+	}
+}

@@ -32,42 +32,42 @@ func HTTPHandler(w http.ResponseWriter, req *http.Request) {}
 type C struct{}
 
 func (c C) Index(ctx *Ctx) {
-	ctx.RenderJSON(200, JSON{"action": "index"})
+	ctx.RenderJSON(200, JSON{"act": ctx.Action, "ctr": ctx.Controller})
 }
 
 func (c C) Show(ctx *Ctx) {
 	id := ctx.Param("id")
-	ctx.RenderJSON(200, JSON{"action": "show", "id": id})
+	ctx.RenderJSON(200, JSON{"act": ctx.Action, "ctr": ctx.Controller, "id": id})
 }
 
 func (c C) Create(ctx *Ctx) {
 	var i interface{}
 	ctx.LoadJSONRequest(&i)
-	ctx.RenderJSON(200, JSON{"action": "create", "received": i})
+	ctx.RenderJSON(200, JSON{"act": ctx.Action, "ctr": ctx.Controller, "received": i})
 }
 
 func (c C) Update(ctx *Ctx) {
 	id := ctx.Param("id")
-	ctx.RenderJSON(200, JSON{"action": "update", "id": id})
+	ctx.RenderJSON(200, JSON{"act": ctx.Action, "ctr": ctx.Controller, "id": id})
 }
 
 func (c C) Delete(ctx *Ctx) {
 	id := ctx.Param("id")
-	ctx.RenderJSON(200, JSON{"action": "delete", "id": id})
+	ctx.RenderJSON(200, JSON{"act": ctx.Action, "ctr": ctx.Controller, "id": id})
 }
 
 func (c C) ExtraGET(ctx *Ctx) {
 	id := ctx.Param("id")
-	ctx.RenderJSON(200, JSON{"action": "extraget", "id": id})
+	ctx.RenderJSON(200, JSON{"act": ctx.Action, "ctr": ctx.Controller, "id": id})
 }
 
 func (c C) ExtraPOST(ctx *Ctx) {
 	id := ctx.Param("id")
-	ctx.RenderJSON(200, JSON{"action": "extrapost", "id": id})
+	ctx.RenderJSON(200, JSON{"act": ctx.Action, "ctr": ctx.Controller, "id": id})
 }
 
 func (c C) Index1GET(ctx *Ctx) {
-	ctx.RenderString(200, "index")
+	ctx.RenderString(200, ctx.Controller+"-"+ctx.Action)
 }
 
 func TestFiles(t *testing.T) {
@@ -87,47 +87,47 @@ func TestController(t *testing.T) {
 	req := newRequest("GET", "http://localhost/api/pages/", "{}")
 	w := newRecorder()
 	r.ServeHTTP(w, req)
-	assertEqual(t, `{"action":"index"}`, w.Body.String())
+	assertEqual(t, `{"act":"Index","ctr":"C"}`, w.Body.String())
 
 	req = newRequest("POST", "http://localhost/api/pages/", `{"root": 1}`)
 	w = newRecorder()
 	r.ServeHTTP(w, req)
-	assertEqual(t, `{"action":"create","received":{"root":1}}`, w.Body.String())
+	assertEqual(t, `{"act":"Create","ctr":"C","received":{"root":1}}`, w.Body.String())
 
 	req = newRequest("GET", "http://localhost/api/pages/1", "{}")
 	w = newRecorder()
 	r.ServeHTTP(w, req)
-	assertEqual(t, `{"action":"show","id":"1"}`, w.Body.String())
+	assertEqual(t, `{"act":"Show","ctr":"C","id":"1"}`, w.Body.String())
 
 	req = newRequest("PUT", "http://localhost/api/pages/1", "{}")
 	w = newRecorder()
 	r.ServeHTTP(w, req)
-	assertEqual(t, `{"action":"update","id":"1"}`, w.Body.String())
+	assertEqual(t, `{"act":"Update","ctr":"C","id":"1"}`, w.Body.String())
 
 	req = newRequest("DELETE", "http://localhost/api/pages/1", "{}")
 	w = newRecorder()
 	r.ServeHTTP(w, req)
-	assertEqual(t, `{"action":"delete","id":"1"}`, w.Body.String())
+	assertEqual(t, `{"act":"Delete","ctr":"C","id":"1"}`, w.Body.String())
 
 	req = newRequest("GET", "http://localhost/api/pages/extra", "{}")
 	w = newRecorder()
 	r.ServeHTTP(w, req)
-	assertEqual(t, `{"action":"extraget","id":""}`, w.Body.String())
+	assertEqual(t, `{"act":"ExtraGET","ctr":"C","id":""}`, w.Body.String())
 
 	req = newRequest("GET", "http://localhost/api/pages/1/extra", "{}")
 	w = newRecorder()
 	r.ServeHTTP(w, req)
-	assertEqual(t, `{"action":"extraget","id":"1"}`, w.Body.String())
+	assertEqual(t, `{"act":"ExtraGET","ctr":"C","id":"1"}`, w.Body.String())
 
 	req = newRequest("POST", "http://localhost/api/pages/extra", "{}")
 	w = newRecorder()
 	r.ServeHTTP(w, req)
-	assertEqual(t, `{"action":"extrapost","id":""}`, w.Body.String())
+	assertEqual(t, `{"act":"ExtraPOST","ctr":"C","id":""}`, w.Body.String())
 
 	req = newRequest("POST", "http://localhost/api/pages/1/extra", "{}")
 	w = newRecorder()
 	r.ServeHTTP(w, req)
-	assertEqual(t, `{"action":"extrapost","id":"1"}`, w.Body.String())
+	assertEqual(t, `{"act":"ExtraPOST","ctr":"C","id":"1"}`, w.Body.String())
 }
 
 func BenchmarkHandleIndex(b *testing.B) {

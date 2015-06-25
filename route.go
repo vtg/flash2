@@ -35,10 +35,13 @@ func (r *Route) HandleFunc(s string, f func(http.ResponseWriter, *http.Request))
 //  - AuthFunc is middleware function that implements MWFunc.
 //
 func (r *Route) Route(method, path string, f handlerFunc, funcs ...MWFunc) {
+	r.route(method, path, action{f: f}, funcs)
+}
+
+func (r *Route) route(method, path string, a action, funcs []MWFunc) {
 	hf := func(params map[string]string) http.Handler {
-		return http.Handler(http.HandlerFunc(handleRoute(f, params, funcs...)))
+		return http.Handler(http.HandlerFunc(handleRoute(a, params, funcs)))
 	}
-	// fmt.Println(method, cleanPath(r.prefix+path))
 	r.router.routes.assign(method, cleanPath(r.prefix+path), hf)
 }
 
@@ -72,28 +75,30 @@ func (r *Route) Delete(path string, f handlerFunc, funcs ...MWFunc) {
 //  - AuthFunc is middleware function that implements MWFunc.
 //
 func (r *Route) Controller(path string, controller interface{}, funcs ...MWFunc) {
-	meths := methods(controller)
+	ctr := reflect.TypeOf(controller)
+	meths := methods(ctr)
 	t := reflect.ValueOf(controller)
 	for _, name := range meths {
 		m := t.MethodByName(name).Interface()
 		if f, ok := m.(func(*Ctx)); ok {
+			rAct := action{f: f, action: name, ctr: ctr.Name()}
 			switch name {
 			case "Index":
-				r.Route("GET", path, f, funcs...)
+				r.route("GET", path, rAct, funcs)
 			case "Create":
-				r.Route("POST", cleanPath(path), f, funcs...)
+				r.route("POST", cleanPath(path), rAct, funcs)
 			case "Show":
-				r.Route("GET", cleanPath(path+"/:id"), f, funcs...)
+				r.route("GET", cleanPath(path+"/:id"), rAct, funcs)
 			case "Update":
-				r.Route("PUT", cleanPath(path+"/:id"), f, funcs...)
+				r.route("PUT", cleanPath(path+"/:id"), rAct, funcs)
 			case "Delete":
-				r.Route("DELETE", cleanPath(path+"/:id"), f, funcs...)
+				r.route("DELETE", cleanPath(path+"/:id"), rAct, funcs)
 			default:
 				for _, v := range httpMethods {
 					if strings.HasSuffix(name, v) {
-						action := strings.ToLower(strings.TrimSuffix(name, v))
-						r.Route(v, cleanPath(path+"/"+action), f, funcs...)
-						r.Route(v, cleanPath(path+"/:id/"+action), f, funcs...)
+						act := strings.ToLower(strings.TrimSuffix(name, v))
+						r.route(v, cleanPath(path+"/"+act), rAct, funcs)
+						r.route(v, cleanPath(path+"/:id/"+act), rAct, funcs)
 					}
 				}
 			}

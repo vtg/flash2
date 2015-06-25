@@ -23,9 +23,8 @@ func cleanPath(p string) string {
 	return np
 }
 
-func methods(i interface{}) []string {
+func methods(t reflect.Type) []string {
 	res := []string{}
-	t := reflect.TypeOf(i)
 	for i := 0; i < t.NumMethod(); i++ {
 		res = append(res, t.Method(i).Name)
 	}

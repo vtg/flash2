@@ -31,16 +31,13 @@
 //      r := flash.NewRouter()
 //      a := r.PathPrefix("/api/v1")
 //
-//      // see Route.Route for more info
-//      a.Resource("/pages", &Pages{}, auth)
-//
-//      // see Route.FileServer for more info
-//      r.PathPrefix("/images/").FileServer("./public/")
+//      a.Controller("/pages", Pages{}, auth)
+//      r.PathPrefix("/images").FileServer("./public/")
 //      r.HandleFunc("/", indexHandler)
 //      http.ListenAndServe(":8080", r)
 //    }
 //
-//    // simple quthentication implementation
+//    //simple quthentication implementation
 //    func auth(c *flash.Ctx) bool {
 //      key := c.QueryParam("key")
 //      if key == "correct-password" {
@@ -73,105 +70,104 @@
 //      return pages[id]
 //    }
 //
-//    // Pages used as controller
-//    type Pages struct {
-//      flash.Ctx
-//    }
+//    //Pages used as controller
+//    type Pages struct{}
 //
-//    // Index processed on GET /pages
-//    func (p *Pages) Index() {
+//    //Index processed on GET /pages
+//    func (p Pages) Index(c *flash.Ctx) {
 //      var res []*Page
 //
 //      for _, v := range pages {
 //        res = append(res, v)
 //      }
 //
-//      p.RenderJSON(200, flash.JSON{"pages": res})
+//      c.RenderJSON(200, flash.JSON{"pages": res})
 //    }
 //
-//    // Show processed on GET /pages/1
-//    func (p *Pages) Show() {
-//      page := findPage(p.ID64())
+//    //Show processed on GET /pages/1
+//    func (p Pages) Show(c *flash.Ctx) {
+//      page := findPage(c.Params.Int64("id"))
 //
 //      if page == nil {
-//        p.RenderJSONError(404, "record not found")
+//        c.RenderJSONError(404, "record not found")
 //        return
 //      }
 //
-//      p.RenderJSON(200, flash.JSON{"page": page})
+//      c.RenderJSON(200, flash.JSON{"page": page})
 //    }
 //
-//    // Create processed on POST /pages
-//    // with input data provided {"page":{"name":"New Page","content":"some content"}}
-//    func (p *Pages) Create() {
+//    //Create processed on POST /pages
+//    //with input data provided {"name":"New Page","content":"some content"}
+//    func (p Pages) Create(c *flash.Ctx) {
 //      m := Page{}
 //      if m.Name == "" {
-//        // see Request.LoadJSONRequest for more info
-//        p.LoadJSONRequest("page", &m)
-//        p.RenderJSONError(422, "name required")
+//        //see Request.LoadJSONRequest for more info
+//        c.LoadJSONRequest(&m)
+//        c.RenderJSONError(422, "name required")
 //      } else {
 //        insertPage(m)
-//        p.RenderJSON(200, flash.JSON{"page": m})
+//        c.RenderJSON(200, flash.JSON{"page": m})
 //      }
 //    }
 //
-//    // Update processed on PUT /pages/1
-//    // with input data provided {"page":{"name":"Page 1","content":"updated content"}}
-//    func (p *Pages) Update() {
-//      page := findPage(p.ID64())
+//    //Update processed on PUT /pages/1
+//    //with input data provided {"name":"Page 1","content":"updated content"}
+//    func (p Pages) Update(c *flash.Ctx) {
+//      page := findPage(c.Params.Int64("id"))
 //
 //      if page == nil {
-//        p.RenderJSONError(404, "record not found")
+//        c.RenderJSONError(404, "record not found")
 //        return
 //      }
 //
 //      m := Page{}
-//      p.LoadJSONRequest("page", &m)
+//      c.LoadJSONRequest(&m)
 //      page.Content = m.Content
-//      p.RenderJSON(200, flash.JSON{"page": page})
+//      c.RenderJSON(200, flash.JSON{"page": page})
 //    }
 //
-//    // Destroy processed on DELETE /pages/1
-//    func (p *Pages) Destroy() {
-//      page := findPage(p.ID64())
+//    //Destroy processed on DELETE /pages/1
+//    func (p Pages) Destroy(c *flash.Ctx) {
+//      page := findPage(c.Params.Int64("id"))
 //
 //      if page == nil {
-//        p.RenderJSONError(404, "record not found")
+//        c.RenderJSONError(404, "record not found")
 //        return
 //      }
 //
 //      delete(pages, page.Id)
-//      p.RenderJSON(203, flash.JSON{})
+//      c.RenderJSON(203, "")
 //    }
 //
-//    // POSTActivate custom non crud action activates/deactivated page. processed on POST /pages/1/activate
-//    func (p *Pages) POSTActivate() {
-//      page := findPage(p.ID64())
+//    //ActivateGET custom non crud action activates/deactivated page. processed on GET /pages/1/activate
+//    func (p Pages) ActivateGET(c *flash.Ctx) {
+//      page := findPage(c.Params.Int64("id"))
 //      if page == nil {
-//        p.RenderJSONError(404, "record not found")
+//        c.RenderJSONError(404, "record not found")
 //        return
 //      }
 //
 //      page.Visible = !page.Visible
-//      p.RenderJSON(200, flash.JSON{"page": page})
+//      c.RenderJSON(200, flash.JSON{"page": page})
 //    }
 //
 //
-// Its possible to serve custom actions. To add custom action to controller
-// prefix action name with HTTP method:
 //
-//    // POST /pages/clean or POST /pages/1/clean
-//    func (p *Pages) POSTClean {
-//        // do some work here
+//Its possible to serve custom actions. To add custom action to controller
+//add HTTP method suffix to action name:
+//
+//    //POST /pages/clean or POST /pages/1/clean
+//    func (p Pages) CleanPOST {
+//      // do some work here
 //    }
 //
 //    // DELETE /pages/clean or DELETE /pages/1/clean
-//    func (p *Pages) DELETEClean {
+//    func (p Pages) CleanDELETE {
 //        // do some work here
 //    }
 //
 //    // GET /pages/stat or GET /pages/1/stat
-//    func (p *Pages) GETStat {
+//    func (p Pages) StatGET {
 //        // do some work here
 //    }
 //

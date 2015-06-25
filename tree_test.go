@@ -25,10 +25,12 @@ func TestTreeMatch(t *testing.T) {
 	r.tree.assign("GET", "/api/pages", testH)
 	r.tree.assign("GET", "/api/pages/:id", testH)
 	r.tree.assign("GET", "/api/pages/:id/hello", testH)
+	r.tree.assign("GET", "/images/@file", testH)
 	assertNotNil(t, r.tree.match("GET", "/api/pages"))
 	assertNil(t, r.tree.match("POST", "/api/pages"))
 	assertNotNil(t, r.tree.match("GET", "/api/pages/1"))
 	assertNotNil(t, r.tree.match("GET", "/api/pages/1/hello"))
 	assertNil(t, r.tree.match("GET", "/api/page"))
 	assertNil(t, r.tree.match("GET", "/api/pages/1/wrongAction"))
+	assertNotNil(t, r.tree.match("GET", "/images/1"))
 }

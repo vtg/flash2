@@ -39,8 +39,10 @@ func (l routes) match(meth, s string) http.Handler {
 			if !ok {
 				r1, ok = r.routes["*"]
 				if !ok {
-					if r1, ok = r.routes["**"]; ok {
+					r1, ok = r.routes["**"]
+					if ok {
 						params[r1.paramName] = strings.Join(keys[idx:], "/")
+						r = r1
 						break
 					}
 				}

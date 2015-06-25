@@ -23,7 +23,10 @@ func newRequest(method, url string, body string) *http.Request {
 	return req
 }
 
-func RouteHandler(c *Ctx)                                  {}
+func RouteHandler(c *Ctx) {
+	c.RenderString(200, c.Param("file"))
+}
+
 func HTTPHandler(w http.ResponseWriter, req *http.Request) {}
 
 type C struct{}
@@ -65,6 +68,15 @@ func (c C) ExtraPOST(ctx *Ctx) {
 
 func (c C) Index1GET(ctx *Ctx) {
 	ctx.RenderString(200, "index")
+}
+
+func TestFiles(t *testing.T) {
+	r := NewRouter()
+	r.Get("/images/@file", RouteHandler)
+	req := newRequest("GET", "http://localhost/images/public/image.png", "{}")
+	w := newRecorder()
+	r.ServeHTTP(w, req)
+	assertEqual(t, "public/image.png", w.Body.String())
 }
 
 func TestController(t *testing.T) {

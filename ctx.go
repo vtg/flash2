@@ -10,34 +10,17 @@ import (
 	"strings"
 )
 
-// Ctr public interface for Controller
-type Ctr interface {
-	ctx() *Ctx
-}
-
 // Ctx contains request information
 type Ctx struct {
 	Req *http.Request
 	W   http.ResponseWriter
 
-	Action string
-
 	vars   map[string]interface{}
 	params map[string]string
 }
 
-func (c *Ctx) ctx() *Ctx {
-	return c
-}
-
-// Init initializing controller
-func (c *Ctx) init(w http.ResponseWriter, req *http.Request, params map[string]string, extras []string) {
-	c.initCtx(w, req, params)
-	c.Action = makeAction(req.Method, params["id"], params["action"], extras)
-}
-
 // initCtx initializing Ctx structure
-func (c *Ctx) initCtx(w http.ResponseWriter, req *http.Request, params map[string]string) {
+func (c *Ctx) init(w http.ResponseWriter, req *http.Request, params map[string]string) {
 	c.W = w
 	c.Req = req
 	c.params = params

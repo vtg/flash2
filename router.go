@@ -4,15 +4,20 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"reflect"
-	"strings"
 
 	"github.com/gorilla/handlers"
 )
 
+type handFunc func(map[string]string) http.Handler
+
+// NewRouter creates new Router
+func NewRouter() *Router {
+	return &Router{tree: make(routes)}
+}
+
 // Router stroring app routes structure
 type Router struct {
-	tree route
+	tree routes
 
 	// SSL defines server type (default none SSL)
 	SSL bool
@@ -22,9 +27,9 @@ type Router struct {
 	PrivateKey string
 }
 
-// NewRouter creates new Router
-func NewRouter() *Router {
-	return &Router{tree: route{routes: make(routes)}}
+// NewRoute registers an empty route.
+func (r *Router) NewRoute(prefix string) *Route {
+	return &Route{router: r, prefix: prefix}
 }
 
 // HandleFunc registers a new route with a matcher for the URL path.
@@ -34,25 +39,40 @@ func (r *Router) HandleFunc(path string, f func(http.ResponseWriter, *http.Reque
 }
 
 // Route registers a new route with a matcher for URL path
-// and registering controller handler
-func (r *Router) Route(path string, f handlerFunc, funcs ...ReqFunc) {
-	r.NewRoute("").Route(path, f, funcs...)
+// See Route.Route().
+func (r *Router) Route(method, path string, f handlerFunc, funcs ...MWFunc) {
+	r.NewRoute("").Route(method, path, f, funcs...)
 }
 
-// Resource registers a new Resource with a matcher for URL path
-// and registering controller handler
-func (r *Router) Resource(path string, i Ctr, funcs ...ReqFunc) {
-	r.NewRoute("").Resource(path, i, funcs...)
+// Get shorthand for Route("GET", ...)
+func (r *Router) Get(path string, f handlerFunc, funcs ...MWFunc) {
+	r.NewRoute("").Get(path, f, funcs...)
 }
 
-// HandlePrefix registers a new handler to serve prefix
-func (r *Router) HandlePrefix(path string, handler http.Handler) {
-	r.NewRoute(path).Handler(handler).addRoute()
+// Post shorthand for Route("POST", ...)
+func (r *Router) Post(path string, f handlerFunc, funcs ...MWFunc) {
+	r.NewRoute("").Post(path, f, funcs...)
 }
 
-// NewRoute registers an empty route.
-func (r *Router) NewRoute(prefix string) *Route {
-	return &Route{router: r, prefix: prefix}
+// Put shorthand for Route("PUT", ...)
+func (r *Router) Put(path string, f handlerFunc, funcs ...MWFunc) {
+	r.NewRoute("").Put(path, f, funcs...)
+}
+
+// Delete shorthand for Route("DELETE", ...)
+func (r *Router) Delete(path string, f handlerFunc, funcs ...MWFunc) {
+	r.NewRoute("").Delete(path, f, funcs...)
+}
+
+// // Resource registers a new Resource with a matcher for URL path
+// // and registering controller handler
+// func (r *Router) Resource(path string, i Ctr, funcs ...MWFunc) {
+// 	r.NewRoute("").Resource(path, i, funcs...)
+// }
+
+// Handle registers a new handler to serve path
+func (r *Router) Handle(path string, handler http.Handler) {
+	r.NewRoute("").Handle(path, handler)
 }
 
 // PathPrefix create new prefixed group for routes
@@ -67,17 +87,11 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		http.Redirect(w, req, p, http.StatusMovedPermanently)
 		return
 	}
-
-	match := r.tree.match(req.Method, p)
-
-	if match.route == nil {
-		http.NotFoundHandler().ServeHTTP(w, req)
+	h := r.tree.match(req.Method, p)
+	if h != nil {
+		h.ServeHTTP(w, req)
 	} else {
-		if match.route.ctr != nil {
-			match.route.ctr(match.params).ServeHTTP(w, req)
-		} else {
-			match.route.handler.ServeHTTP(w, req)
-		}
+		http.NotFoundHandler().ServeHTTP(w, req)
 	}
 }
 
@@ -96,21 +110,19 @@ func (r *Router) Serve(bind string) {
 	}
 }
 
-var meths = []string{"GET", "POST", "DELETE"}
-
-// implements extracting custom methods from controller
-// custom method names should begin from GET, POST or DELETE
-func implements(v interface{}) []string {
-	res := []string{}
-	t := reflect.TypeOf(v)
-	for i := 0; i < t.NumMethod(); i++ {
-		m := t.Method(i)
-		for _, k := range meths {
-			if strings.HasPrefix(m.Name, k) {
-				res = append(res, m.Name)
-				continue
-			}
-		}
-	}
-	return res
-}
+// // implements extracting custom methods from controller
+// // custom method names should begin from GET, POST or DELETE
+// func implements(v interface{}) []string {
+// 	res := []string{}
+// 	t := reflect.TypeOf(v)
+// 	for i := 0; i < t.NumMethod(); i++ {
+// 		m := t.Method(i)
+// 		for _, k := range meths {
+// 			if strings.HasPrefix(m.Name, k) {
+// 				res = append(res, m.Name)
+// 				continue
+// 			}
+// 		}
+// 	}
+// 	return res
+// }

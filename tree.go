@@ -1,122 +1,93 @@
 package flash
 
-import "strings"
+import (
+	"net/http"
+	"strings"
+)
 
 // type routes map[string]routes
 
 // route contains part of route
 type route struct {
-	route  *Route
-	params []string
-	routes routes
+	paramName string
+	routes    routes
+	f         handFunc
+}
+
+type match struct {
+	handler http.Handler
+	// params  map[string]string
 }
 
 type routes map[string]*route
 
-type match struct {
-	route  *Route
-	params map[string]string
-}
-
 // match returns route if found and route params
-func (l *route) match(meth, s string) match {
-	parts := strings.Split(strings.Trim(s, "/"), "/")
-	res := match{params: make(map[string]string)}
-	params := []string{}
+func (l routes) match(meth, s string) http.Handler {
+	keys := splitString(s, "/")
+	// fmt.Println("2:", meth, s, keys)
+	params := make(map[string]string)
 
-	var root *route
-	var ok bool
-
-	if root, ok = l.routes[meth]; !ok {
-		return res
+	root, ok := l[meth]
+	if !ok {
+		return nil
 	}
 
-	l = root
-
-	for k, part := range parts {
-		root, ok := l.routes[part]
+	r := root
+	for idx, key := range keys {
+		r1, ok := r.routes[key]
 		if !ok {
-			root, ok = l.routes["*"]
+			r1, ok = r.routes["*"]
 			if !ok {
-				if root, ok = l.routes["**"]; ok {
-					l = root
-					params = append(params, strings.Join(parts[k:], "/"))
+				if r1, ok = r.routes["**"]; ok {
+					params[r1.paramName] = strings.Join(keys[idx:], "/")
+					break
 				}
-				break
 			}
-			params = append(params, part)
+			if r1 != nil {
+				params[r1.paramName] = key
+			}
 		}
-		l = root
+		r = r1
+	}
+	if r != nil && r.f != nil {
+		return r.f(params)
 	}
 
-	res.route = l.route
-
-	if res.route != nil {
-		for k, v := range params {
-			res.params[l.params[k]] = v
-		}
-	}
-
-	return res
+	return nil
 }
 
-// assign creating route structure
-func (l *route) assign(meth string, r *Route, params ...string) {
-	keys := []string{}
-	optional := []string{}
-	parts := splitString(meth+"/"+r.prefix, "/")
-	curPath := l
+// assign adds route structure to routes
+func (l routes) assign(meth, path string, f handFunc) {
+	parts := splitString(path, "/")
 
+	if _, ok := l[meth]; !ok {
+		l[meth] = &route{routes: routes{}}
+	}
+
+	r := l[meth]
 	for _, key := range parts {
-		// check if part is a template
-		if key != "" {
-			switch key[0] {
-			case ':':
-				keys = append(keys, key[1:])
-				key = "*"
-			case '&':
-				optional = append(optional, key[1:])
-				continue
-			case '@':
-				optional = append(optional, key)
-				continue
-			}
+		name, param := keyParams(key)
+		if _, ok := r.routes[name]; !ok {
+			r.routes[name] = &route{paramName: param, routes: routes{}}
 		}
-		_, ok := curPath.routes[key]
-		if !ok {
-			curPath.routes[key] = &route{routes: routes{}}
-		}
-		curPath = curPath.routes[key]
-	}
-
-	curPath.route = r
-	curPath.params = keys
-
-	if len(optional) > 0 {
-		params = append(optional, params...)
-	}
-
-	cp := curPath
-	for _, key := range params {
-		if key != "" {
-			switch key[0] {
-			case '@':
-				keys = append(keys, key[1:])
-				cp.routes["**"] = &route{
-					params: keys,
-					route:  r,
-				}
-				break
-			default:
-				keys = append(keys, key)
-				cp.routes["*"] = &route{
-					params: keys,
-					route:  r,
-					routes: routes{},
-				}
-				cp = cp.routes["*"]
-			}
+		r = r.routes[name]
+		if name == "**" {
+			break
 		}
 	}
+	r.f = f
+}
 
+func keyParams(key string) (name, param string) {
+	switch key[0] {
+	case ':':
+		param = key[1:]
+		name = "*"
+	case '@':
+		param = key[1:]
+		name = "**"
+	default:
+		name = key
+	}
+	return
 }

@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"path"
+	"reflect"
 	"strings"
 	"unicode"
 	"unicode/utf8"
@@ -90,6 +91,15 @@ func splitString(s, d string) (res []string) {
 		}
 	}
 	return
+}
+
+func methods(i interface{}) []string {
+	res := []string{}
+	t := reflect.TypeOf(i)
+	for i := 0; i < t.NumMethod(); i++ {
+		res = append(res, t.Method(i).Name)
+	}
+	return res
 }
 
 //    meths := methods(a)

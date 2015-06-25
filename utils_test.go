@@ -1,4 +1,4 @@
-package flash
+package flash2
 
 import (
 	"reflect"

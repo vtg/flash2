@@ -1,4 +1,4 @@
-package flash
+package flash2
 
 import (
 	"net/http"
@@ -31,7 +31,7 @@ func (r *Route) HandleFunc(s string, f func(http.ResponseWriter, *http.Request))
 //    api = r.PathPrefix("/api/v1")
 //    api.Route("GET","/pages/:id/comments", PageComments, AuthFunc)
 // where
-//  - PageComments is the function implementing func(*flash.Ctx)
+//  - PageComments is the function implementing func(*flash2.Ctx)
 //  - AuthFunc is middleware function that implements MWFunc.
 //
 func (r *Route) Route(method, path string, f handlerFunc, funcs ...MWFunc) {

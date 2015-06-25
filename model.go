@@ -1,4 +1,4 @@
-package flash
+package flash2
 
 import (
 	"fmt"
@@ -12,7 +12,7 @@ type ModelErrors map[string][]string
 
 // ModelBase structure for base model
 //	type User struct {
-// 	    flash.ModelBase
+// 	    flash2.ModelBase
 // 	    Name string
 // 	}
 type ModelBase struct {
@@ -151,7 +151,7 @@ func (m *ModelBase) ValidateFormat(f, v, reg string) {
 
 // Model structure for base model with ID included
 //	type User struct {
-// 	    flash.Model
+// 	    flash2.Model
 // 	    Name string
 // 	}
 type Model struct {

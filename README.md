@@ -1,4 +1,4 @@
-flash
+flash2
 ====
 HTTP routing package that helps to create restfull json api for Go applications.
 
@@ -13,7 +13,7 @@ what it does:
 
 Routing:
 ```go
-r := flash.NewRouter()
+r := flash2.NewRouter()
 
 // GET route to function(*Ctx)
 r.Get("/pages/:id", ShowPage)
@@ -48,7 +48,7 @@ package main
 import (
 	"net/http"
 
-	"github.com/vtg/flash"
+	"github.com/vtg/flash2"
 )
 
 var pages map[int64]*Page
@@ -58,7 +58,7 @@ func main() {
 	pages[1] = &Page{Id: 1, Name: "Page 1"}
 	pages[2] = &Page{Id: 2, Name: "Page 2"}
 
-	r := flash.NewRouter()
+	r := flash2.NewRouter()
 	a := r.PathPrefix("/api/v1")
 
 	a.Controller("/pages", Pages{}, auth)
@@ -68,7 +68,7 @@ func main() {
 }
 
 // simple quthentication implementation
-func auth(c *flash.Ctx) bool {
+func auth(c *flash2.Ctx) bool {
 	key := c.QueryParam("key")
 	if key == "correct-password" {
 		return true
@@ -104,18 +104,18 @@ func insertPage(p Page) *Page {
 type Pages struct{}
 
 // Index processed on GET /pages
-func (p Pages) Index(c *flash.Ctx) {
+func (p Pages) Index(c *flash2.Ctx) {
 	var res []*Page
 
 	for _, v := range pages {
 		res = append(res, v)
 	}
 
-	c.RenderJSON(200, flash.JSON{"pages": res})
+	c.RenderJSON(200, flash2.JSON{"pages": res})
 }
 
 // Show processed on GET /pages/1
-func (p Pages) Show(c *flash.Ctx) {
+func (p Pages) Show(c *flash2.Ctx) {
 	page := findPage(c.Params.Int64("id"))
 
 	if page == nil {
@@ -123,12 +123,12 @@ func (p Pages) Show(c *flash.Ctx) {
 		return
 	}
 
-	c.RenderJSON(200, flash.JSON{"page": page})
+	c.RenderJSON(200, flash2.JSON{"page": page})
 }
 
 // Create processed on POST /pages
 // with input data provided {"name":"New Page","content":"some content"}
-func (p Pages) Create(c *flash.Ctx) {
+func (p Pages) Create(c *flash2.Ctx) {
 	m := Page{}
 	if m.Name == "" {
 		// see Request.LoadJSONRequest for more info
@@ -136,13 +136,13 @@ func (p Pages) Create(c *flash.Ctx) {
 		c.RenderJSONError(422, "name required")
 	} else {
 		insertPage(m)
-		c.RenderJSON(200, flash.JSON{"page": m})
+		c.RenderJSON(200, flash2.JSON{"page": m})
 	}
 }
 
 // Update processed on PUT /pages/1
 // with input data provided {"name":"Page 1","content":"updated content"}
-func (p Pages) Update(c *flash.Ctx) {
+func (p Pages) Update(c *flash2.Ctx) {
 	page := findPage(c.Params.Int64("id"))
 
 	if page == nil {
@@ -153,11 +153,11 @@ func (p Pages) Update(c *flash.Ctx) {
 	m := Page{}
 	c.LoadJSONRequest(&m)
 	page.Content = m.Content
-	c.RenderJSON(200, flash.JSON{"page": page})
+	c.RenderJSON(200, flash2.JSON{"page": page})
 }
 
 // Destroy processed on DELETE /pages/1
-func (p Pages) Destroy(c *flash.Ctx) {
+func (p Pages) Destroy(c *flash2.Ctx) {
 	page := findPage(c.Params.Int64("id"))
 
 	if page == nil {
@@ -170,7 +170,7 @@ func (p Pages) Destroy(c *flash.Ctx) {
 }
 
 // ActivateGET custom non crud action activates/deactivated page. processed on GET /pages/1/activate
-func (p Pages) ActivateGET(c *flash.Ctx) {
+func (p Pages) ActivateGET(c *flash2.Ctx) {
 	page := findPage(c.Params.Int64("id"))
 	if page == nil {
 		c.RenderJSONError(404, "record not found")
@@ -178,7 +178,7 @@ func (p Pages) ActivateGET(c *flash.Ctx) {
 	}
 
 	page.Visible = !page.Visible
-	c.RenderJSON(200, flash.JSON{"page": page})
+	c.RenderJSON(200, flash2.JSON{"page": page})
 }
 ```
 
@@ -209,4 +209,4 @@ VTG - http://github.com/vtg
 
 Released under the [MIT License](http://www.opensource.org/licenses/MIT).
 
-[![GoDoc](https://godoc.org/github.com/vtg/flash?status.png)](http://godoc.org/github.com/vtg/flash)
+[![GoDoc](https://godoc.org/github.com/vtg/flash2?status.png)](http://godoc.org/github.com/vtg/flash2)

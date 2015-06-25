@@ -1,4 +1,4 @@
-package flash
+package flash2
 
 import (
 	"log"
@@ -106,20 +106,3 @@ func (r *Router) Serve(bind string) {
 		log.Fatalf("Server start error: ", err)
 	}
 }
-
-// // implements extracting custom methods from controller
-// // custom method names should begin from GET, POST or DELETE
-// func implements(v interface{}) []string {
-// 	res := []string{}
-// 	t := reflect.TypeOf(v)
-// 	for i := 0; i < t.NumMethod(); i++ {
-// 		m := t.Method(i)
-// 		for _, k := range meths {
-// 			if strings.HasPrefix(m.Name, k) {
-// 				res = append(res, m.Name)
-// 				continue
-// 			}
-// 		}
-// 	}
-// 	return res
-// }

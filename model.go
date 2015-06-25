@@ -3,40 +3,41 @@ package flash2
 import (
 	"fmt"
 	"regexp"
-	"time"
 	"unicode/utf8"
 )
 
-// ModelErrors errors type
-type ModelErrors map[string][]string
+type mErrors struct {
+	Errors modelErrors `json:"errors"`
+}
 
-// ModelBase structure for base model
+type modelErrors map[string][]string
+
+// ModelBase structure for base model with error valiadtions
 //	type User struct {
-// 	    flash2.ModelBase
+// 			ID   int64
 // 	    Name string
+// 	    flash2.ModelBase
 // 	}
 type ModelBase struct {
-	CreatedAt time.Time   `json:"createdAt"`
-	UpdatedAt time.Time   `json:"updatedAt"`
-	Errors    ModelErrors `sql:"-" json:"-"`
+	Errors mErrors `sql:"-" json:"-"`
 }
 
 // ResetErrors clean all model errors
 func (m *ModelBase) ResetErrors() {
-	m.Errors = make(ModelErrors)
+	m.Errors = mErrors{Errors: make(modelErrors)}
 }
 
-// AddError adding error to record
+// AddError adding error to model
 func (m *ModelBase) AddError(f string, t string) {
 	if m.IsValid() {
-		m.Errors = make(ModelErrors)
+		m.Errors = mErrors{Errors: make(modelErrors)}
 	}
-	m.Errors[f] = append(m.Errors[f], t)
+	m.Errors.Errors[f] = append(m.Errors.Errors[f], t)
 }
 
-// IsValid returns true if no errors on record
+// IsValid returns true if no errors on model
 func (m *ModelBase) IsValid() bool {
-	return len(m.Errors) == 0
+	return len(m.Errors.Errors) == 0
 }
 
 // Valid placeholder for validation function
@@ -48,14 +49,14 @@ func (m *ModelBase) Valid() bool {
 	return m.IsValid()
 }
 
-// GetErrors returns record errors
-func (m *ModelBase) GetErrors() ModelErrors {
-	return m.Errors
+// GetErrors returns model errors
+func (m *ModelBase) GetErrors() modelErrors {
+	return m.Errors.Errors
 }
 
-// SetErrors set record errors
-func (m *ModelBase) SetErrors(e ModelErrors) {
-	m.Errors = e
+// SetErrors set model errors
+func (m *ModelBase) SetErrors(e modelErrors) {
+	m.Errors.Errors = e
 }
 
 // ValidatePresence validates string for presence
@@ -149,28 +150,11 @@ func (m *ModelBase) ValidateFormat(f, v, reg string) {
 	}
 }
 
-// Model structure for base model with ID included
-//	type User struct {
-// 	    flash2.Model
-// 	    Name string
-// 	}
-type Model struct {
-	Id int64 `json:"id"`
-	ModelBase
-}
-
-// ID returns ID of record
-func (m *Model) ID() int64 {
-	return m.Id
-}
-
 // BaseModel interface
 type BaseModel interface {
-	ID() int64
 	Valid() bool
-
 	AddError(string, string)
-	SetErrors(ModelErrors)
-	GetErrors() ModelErrors
+	SetErrors(modelErrors)
+	GetErrors() modelErrors
 	ResetErrors()
 }

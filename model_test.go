@@ -3,7 +3,7 @@ package flash2
 import "testing"
 
 type M struct {
-	Model
+	ModelBase
 }
 
 var m = M{}

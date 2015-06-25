@@ -150,15 +150,16 @@ func (c *Ctx) RenderJSON(code int, i interface{}) {
 	}
 
 	c.W.Header().Set("Content-Type", "application/json; charset=utf-8")
-	c.W.WriteHeader(code)
 
 	// gzip content if length > 5kb and client accepts gzip
 	if len(b) > 5000 && strings.Contains(c.Req.Header.Get("Accept-Encoding"), "gzip") {
 		c.W.Header().Set("Content-Encoding", "gzip")
+		c.W.WriteHeader(code)
 		gz := gzip.NewWriter(c.W)
 		defer gz.Close()
 		gz.Write(b)
 	} else {
+		c.W.WriteHeader(code)
 		c.W.Write(b)
 	}
 }

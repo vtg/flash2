@@ -51,6 +51,9 @@ func (l routes) match(meth, s string) http.Handler {
 				}
 			}
 			r = r1
+			if r == nil {
+				break
+			}
 		}
 	}
 	if r != nil && r.f != nil {

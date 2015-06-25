@@ -23,20 +23,6 @@ func cleanPath(p string) string {
 	return np
 }
 
-func method(s string) uint8 {
-	switch s {
-	case "GET":
-		return 1
-	case "POST":
-		return 2
-	case "PUT", "PATCH":
-		return 3
-	case "DELETE":
-		return 4
-	}
-	return 0
-}
-
 func methods(i interface{}) []string {
 	res := []string{}
 	t := reflect.TypeOf(i)

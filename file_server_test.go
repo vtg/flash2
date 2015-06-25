@@ -1,12 +1,16 @@
 package flash2
 
-// func TestFileServer(t *testing.T) {
-// 	r := NewRouter()
-// 	r.PathPrefix("/files").FileServer("./test")
+import (
+	"strings"
+	"testing"
+)
 
-// 	req := newRequest("GET", "http://localhost/files/file.txt", "{}")
-// 	w := newRecorder()
-// 	r.ServeHTTP(w, req)
-// 	fmt.Println(string(w.Body.Bytes()))
-// 	assertEqual(t, "FileServer test", strings.TrimSpace(string(w.Body.Bytes())))
-// }
+func TestFileServer(t *testing.T) {
+	r := NewRouter()
+	r.PathPrefix("/files").FileServer("./test")
+
+	req := newRequest("GET", "http://localhost/files/file.txt", "{}")
+	w := newRecorder()
+	r.ServeHTTP(w, req)
+	assertEqual(t, "FileServer test", strings.TrimSpace(w.Body.String()))
+}

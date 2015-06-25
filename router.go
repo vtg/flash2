@@ -82,6 +82,8 @@ func (r *Router) PathPrefix(s string) *Route {
 
 // ServeHTTP dispatches the handler registered in the matched route.
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	defer req.Body.Close()
+
 	h := r.tree.match(req.Method, req.URL.Path)
 	if h != nil {
 		h.ServeHTTP(w, req)

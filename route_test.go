@@ -42,7 +42,7 @@ func (c C) Show(ctx *Ctx) {
 
 func (c C) Create(ctx *Ctx) {
 	var i interface{}
-	ctx.LoadJSONRequest("root", &i)
+	ctx.LoadJSONRequest(&i)
 	ctx.RenderJSON(200, JSON{"action": "create", "received": i})
 }
 
@@ -92,7 +92,7 @@ func TestController(t *testing.T) {
 	req = newRequest("POST", "http://localhost/api/pages/", `{"root": 1}`)
 	w = newRecorder()
 	r.ServeHTTP(w, req)
-	assertEqual(t, `{"action":"create","received":1}`+"\n", w.Body.String())
+	assertEqual(t, `{"action":"create","received":{"root":1}}`+"\n", w.Body.String())
 
 	req = newRequest("GET", "http://localhost/api/pages/1", "{}")
 	w = newRecorder()

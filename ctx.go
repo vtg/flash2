@@ -10,38 +10,76 @@ import (
 	"strings"
 )
 
+// MWFunc is the function type for middlware
+type MWFunc func(*Ctx) bool
+
+// handlerFunc is the function type for routes
+type handlerFunc func(*Ctx)
+
+// JSON shortcut for map[string]interface{}
+type JSON map[string]interface{}
+
+// handleRoute returns http handler function to process route
+func handleRoute(f handlerFunc, params map[string]string, funcs ...MWFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, req *http.Request) {
+		c := &Ctx{}
+		c.init(w, req, params)
+
+		for _, f := range funcs {
+			if ok := f(c); !ok {
+				return
+			}
+		}
+
+		f(c)
+	}
+}
+
+// URLParams contains arams parsed from route template
+type URLParams map[string]string
+
+// Int64 returns param value as int64
+func (u URLParams) Int64(k string) int64 {
+	i, _ := strconv.ParseInt(u[k], 10, 64)
+	return i
+}
+
+// Int returns param value as int
+func (u URLParams) Int(k string) int {
+	i, _ := strconv.Atoi(u[k])
+	return i
+}
+
+// Bool returns param value as bool
+func (u URLParams) Bool(k string) bool {
+	r := u[k]
+	if r == "1" || r == "true" {
+		return true
+	}
+	return false
+}
+
 // Ctx contains request information
 type Ctx struct {
-	Req *http.Request
-	W   http.ResponseWriter
+	Req    *http.Request
+	W      http.ResponseWriter
+	Params URLParams
 
-	vars   map[string]interface{}
-	params map[string]string
+	vars map[string]interface{}
 }
 
 // initCtx initializing Ctx structure
 func (c *Ctx) init(w http.ResponseWriter, req *http.Request, params map[string]string) {
 	c.W = w
 	c.Req = req
-	c.params = params
+	c.Params = params
 	c.vars = make(map[string]interface{})
 }
 
 // LoadJSONRequest extracting JSON request by key
 // from request body into interface
-func (c *Ctx) LoadJSONRequest(root string, v interface{}) {
-	defer c.Req.Body.Close()
-
-	if root == "" {
-		extractJSONPayload(c.Req.Body, &v)
-		return
-	}
-
-	var s []byte
-	var body JSON
-	extractJSONPayload(c.Req.Body, &body)
-	s, _ = json.Marshal(body[root])
-	json.Unmarshal(s, &v)
+func (c *Ctx) LoadJSONRequest(v interface{}) {
+	json.NewDecoder(c.Req.Body).Decode(&v)
 }
 
 // QueryParam returns URL query param
@@ -51,12 +89,7 @@ func (c *Ctx) QueryParam(s string) string {
 
 // Param get URL param
 func (c *Ctx) Param(k string) string {
-	return c.params[k]
-}
-
-// Params returns all URL params
-func (c *Ctx) Params() map[string]string {
-	return c.params
+	return c.Params[k]
 }
 
 // SetVar set session variable
@@ -129,10 +162,4 @@ func (c *Ctx) LoadFile(field, dir string) (string, error) {
 	defer f.Close()
 	io.Copy(f, file)
 	return handler.Filename, nil
-}
-
-// ID64 returns ID as int64
-func (c *Ctx) ID64() int64 {
-	i, _ := strconv.ParseInt(c.params["id"], 10, 64)
-	return i
 }

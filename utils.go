@@ -3,16 +3,11 @@ package flash
 import (
 	"compress/gzip"
 	"encoding/json"
-	"io"
 	"log"
 	"net/http"
 	"path"
 	"reflect"
 )
-
-func extractJSONPayload(data io.Reader, v interface{}) error {
-	return json.NewDecoder(data).Decode(&v)
-}
 
 // RenderJSONError common function to render error to client in JSON format
 func RenderJSONError(w http.ResponseWriter, code int, s string) {

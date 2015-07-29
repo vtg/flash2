@@ -1,6 +1,7 @@
 package flash2
 
 import (
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -12,7 +13,7 @@ type handFunc func(map[string]string) http.Handler
 
 // NewRouter creates new Router
 func NewRouter() *Router {
-	return &Router{routes: make(routes)}
+	return &Router{routes: make(routes), LogWriter: os.Stdout}
 }
 
 // Router stroring app routes structure
@@ -25,6 +26,8 @@ type Router struct {
 	PublicKey string
 	// PrivateKey for SSL processing
 	PrivateKey string
+	// LogWriter log writer interface
+	LogWriter io.Writer
 }
 
 // NewRoute registers an empty route.
@@ -97,10 +100,10 @@ func (r *Router) Serve(bind string) {
 	var err error
 	if r.SSL {
 		log.Printf("Starting secure SSL Server on %s", bind)
-		err = http.ListenAndServeTLS(bind, r.PublicKey, r.PrivateKey, handlers.CombinedLoggingHandler(os.Stdout, r))
+		err = http.ListenAndServeTLS(bind, r.PublicKey, r.PrivateKey, handlers.CombinedLoggingHandler(r.LogWriter, r))
 	} else {
 		log.Printf("Starting Server on %s", bind)
-		err = http.ListenAndServe(bind, handlers.CombinedLoggingHandler(os.Stdout, r))
+		err = http.ListenAndServe(bind, handlers.CombinedLoggingHandler(r.LogWriter, r))
 	}
 	if err != nil {
 		log.Fatalf("Server start error: ", err)

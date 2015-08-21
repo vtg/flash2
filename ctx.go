@@ -80,6 +80,7 @@ type Ctx struct {
 	W      http.ResponseWriter
 	Params URLParams
 
+	IP         string
 	Action     string
 	Controller string
 
@@ -90,6 +91,7 @@ type Ctx struct {
 func (c *Ctx) init(w http.ResponseWriter, req *http.Request, params map[string]string) {
 	c.W = w
 	c.Req = req
+	c.IP = strings.Split(req.RemoteAddr, ":")[0]
 	c.Params = params
 	c.vars = make(map[string]interface{})
 }

@@ -90,7 +90,10 @@ func (r *Route) Controller(path string, controller interface{}, funcs ...MWFunc)
 			case "Show":
 				r.route("GET", cleanPath(path+"/:id"), rAct, funcs)
 			case "Update":
-				r.route("PUT", cleanPath(path+"/:id"), rAct, funcs)
+				cp := cleanPath(path + "/:id")
+				r.route("POST", cp, rAct, funcs)
+				r.route("PATCH", cp, rAct, funcs)
+				r.route("PUT", cp, rAct, funcs)
 			case "Delete":
 				r.route("DELETE", cleanPath(path+"/:id"), rAct, funcs)
 			default:

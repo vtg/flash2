@@ -104,6 +104,16 @@ func TestController(t *testing.T) {
 	r.ServeHTTP(w, req)
 	assertEqual(t, `{"act":"Update","ctr":"C","id":"1"}`, w.Body.String())
 
+	req = newRequest("POST", "http://localhost/api/pages/1", "{}")
+	w = newRecorder()
+	r.ServeHTTP(w, req)
+	assertEqual(t, `{"act":"Update","ctr":"C","id":"1"}`, w.Body.String())
+
+	req = newRequest("PATCH", "http://localhost/api/pages/1", "{}")
+	w = newRecorder()
+	r.ServeHTTP(w, req)
+	assertEqual(t, `{"act":"Update","ctr":"C","id":"1"}`, w.Body.String())
+
 	req = newRequest("DELETE", "http://localhost/api/pages/1", "{}")
 	w = newRecorder()
 	r.ServeHTTP(w, req)

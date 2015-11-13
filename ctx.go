@@ -205,3 +205,8 @@ func (c *Ctx) LoadFile(field, dir string) (string, error) {
 	io.Copy(f, file)
 	return handler.Filename, nil
 }
+
+// Redirect http redirect
+func (c *Ctx) Redirect(url string, code int) {
+	http.Redirect(c.W, c.Req, url, code)
+}

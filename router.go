@@ -13,7 +13,7 @@ type handFunc func(map[string]string) http.Handler
 
 // NewRouter creates new Router
 func NewRouter() *Router {
-	return &Router{routes: make(routes), LogWriter: os.Stdout}
+	return &Router{routes: make(routes), LogWriter: os.Stdout, LogHTTP: true}
 }
 
 // Router stroring app routes structure
@@ -28,6 +28,7 @@ type Router struct {
 	PrivateKey string
 	// LogWriter log writer interface
 	LogWriter io.Writer
+	LogHTTP   bool
 }
 
 // NewRoute registers an empty route.

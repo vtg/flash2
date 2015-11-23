@@ -100,12 +100,19 @@ func (r *Router) Serve(bind string) {
 	var err error
 	if r.SSL {
 		log.Printf("Starting secure SSL Server on %s", bind)
-		err = http.ListenAndServeTLS(bind, r.PublicKey, r.PrivateKey, handlers.CombinedLoggingHandler(r.LogWriter, r))
+		err = http.ListenAndServeTLS(bind, r.PublicKey, r.PrivateKey, r.logHandler())
 	} else {
 		log.Printf("Starting Server on %s", bind)
-		err = http.ListenAndServe(bind, handlers.CombinedLoggingHandler(r.LogWriter, r))
+		err = http.ListenAndServe(bind, r.logHandler())
 	}
 	if err != nil {
 		log.Fatalf("Server start error: ", err)
 	}
+}
+
+func (r *Router) logHandler() http.Handler {
+	if r.LogHTTP {
+		return handlers.CombinedLoggingHandler(r.LogWriter, r)
+	}
+	return r
 }

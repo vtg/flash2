@@ -91,9 +91,20 @@ type Ctx struct {
 func (c *Ctx) init(w http.ResponseWriter, req *http.Request, params map[string]string) {
 	c.W = w
 	c.Req = req
-	c.IP = strings.Split(req.RemoteAddr, ":")[0]
+	c.IP = c.ip()
 	c.Params = params
 	c.vars = make(map[string]interface{})
+}
+
+// ip returns IP address from client
+func (c *Ctx) ip() string {
+	if ip := c.Header("X-Forwarded-For"); ip != "" {
+		return ip
+	}
+	if ip := c.Header("X-Real-IP"); ip != "" {
+		return ip
+	}
+	return strings.Split(c.Req.RemoteAddr, ":")[0]
 }
 
 // LoadJSONRequest extracting JSON request by key

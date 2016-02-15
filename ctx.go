@@ -84,6 +84,11 @@ type Ctx struct {
 	Action     string
 	Controller string
 
+	// GZipEnabled enable GZIP (default: false)
+	GZipEnabled bool
+	// GZipMinBytes minimum size in bytes to encode (default: 0)
+	GZipMinBytes int
+
 	vars map[string]interface{}
 }
 
@@ -159,7 +164,6 @@ func (c *Ctx) RenderJSON(code int, i interface{}) {
 	if b, err = json.Marshal(i); err != nil {
 		c.RenderJSONError(500, err.Error())
 		return
-		// log.Println("JSON Encoding error:", err)
 	}
 
 	c.RenderRawJSON(code, b)
@@ -170,7 +174,7 @@ func (c *Ctx) RenderRawJSON(code int, b []byte) {
 	c.W.Header().Set("Content-Type", "application/json; charset=utf-8")
 
 	// gzip content if length > 5kb and client accepts gzip
-	if len(b) > 5000 && strings.Contains(c.Req.Header.Get("Accept-Encoding"), "gzip") {
+	if c.GZipEnabled && len(b) > c.GZipMinBytes && strings.Contains(c.Req.Header.Get("Accept-Encoding"), "gzip") {
 		c.W.Header().Set("Content-Encoding", "gzip")
 		c.W.WriteHeader(code)
 		gz := gzip.NewWriter(c.W)

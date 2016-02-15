@@ -94,6 +94,8 @@ func TestRenderJSONGzip(t *testing.T) {
 	for i := 0; i < 5001; i++ {
 		txt = txt + "a"
 	}
+	c.GZipEnabled = true
+	c.GZipMinBytes = 5000
 	c.RenderJSON(200, txt)
 	assertEqual(t, []string{"application/json; charset=utf-8"}, w.HeaderMap["Content-Type"])
 	assertEqual(t, []string{"gzip"}, w.HeaderMap["Content-Encoding"])
@@ -106,6 +108,8 @@ func TestRenderRawJSONPlain(t *testing.T) {
 	w := newRecorder()
 	c := Ctx{}
 	c.init(w, req, map[string]string{})
+	c.GZipEnabled = true
+	c.GZipMinBytes = 5000
 	c.RenderRawJSON(200, []byte(`{"a":"b"}`))
 	assertEqual(t, []string{"application/json; charset=utf-8"}, w.HeaderMap["Content-Type"])
 	assertNil(t, w.HeaderMap["Content-Encoding"])
@@ -123,6 +127,8 @@ func TestRenderRawJSONGzip(t *testing.T) {
 	for i := 0; i < 5001; i++ {
 		txt = txt + "a"
 	}
+	c.GZipEnabled = true
+	c.GZipMinBytes = 5000
 	c.RenderRawJSON(200, []byte(txt))
 	assertEqual(t, []string{"application/json; charset=utf-8"}, w.HeaderMap["Content-Type"])
 	assertEqual(t, []string{"gzip"}, w.HeaderMap["Content-Encoding"])
@@ -135,6 +141,8 @@ func BenchmarkRenderJSONPlain(b *testing.B) {
 	w := newRecorder()
 	c := Ctx{}
 	c.init(w, req, map[string]string{})
+	c.GZipEnabled = true
+	c.GZipMinBytes = 5000
 	for n := 0; n < b.N; n++ {
 		c.RenderJSON(200, "test")
 	}
@@ -146,6 +154,8 @@ func BenchmarkRenderJSONGziped(b *testing.B) {
 	w := newRecorder()
 	c := Ctx{}
 	c.init(w, req, map[string]string{})
+	c.GZipEnabled = true
+	c.GZipMinBytes = 5000
 	txt := ""
 	for i := 0; i < 5001; i++ {
 		txt = txt + "a"
@@ -160,6 +170,8 @@ func TestRenderJSONError(t *testing.T) {
 	w := newRecorder()
 	c := Ctx{}
 	c.init(w, req, map[string]string{})
+	c.GZipEnabled = true
+	c.GZipMinBytes = 5000
 	c.RenderJSONError(400, "test error")
 	assertEqual(t, []string{"application/json; charset=utf-8"}, w.HeaderMap["Content-Type"])
 	assertEqual(t, 400, w.Code)

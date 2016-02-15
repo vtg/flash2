@@ -162,6 +162,11 @@ func (c *Ctx) RenderJSON(code int, i interface{}) {
 		// log.Println("JSON Encoding error:", err)
 	}
 
+	c.RenderRawJSON(code, b)
+}
+
+// RenderRawJSON rendering raw JSON data to client
+func (c *Ctx) RenderRawJSON(code int, b []byte) {
 	c.W.Header().Set("Content-Type", "application/json; charset=utf-8")
 
 	// gzip content if length > 5kb and client accepts gzip

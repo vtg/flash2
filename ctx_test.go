@@ -101,6 +101,35 @@ func TestRenderJSONGzip(t *testing.T) {
 	assertEqual(t, 47, len(w.Body.Bytes()))
 }
 
+func TestRenderRawJSONPlain(t *testing.T) {
+	req := newRequest("GET", "http://localhost", "{}")
+	w := newRecorder()
+	c := Ctx{}
+	c.init(w, req, map[string]string{})
+	c.RenderRawJSON(200, []byte(`{"a":"b"}`))
+	assertEqual(t, []string{"application/json; charset=utf-8"}, w.HeaderMap["Content-Type"])
+	assertNil(t, w.HeaderMap["Content-Encoding"])
+	assertEqual(t, 200, w.Code)
+	assertEqual(t, `{"a":"b"}`, w.Body.String())
+}
+
+func TestRenderRawJSONGzip(t *testing.T) {
+	req := newRequest("GET", "http://localhost", "{}")
+	req.Header.Set("Accept-Encoding", "gzip")
+	w := newRecorder()
+	c := Ctx{}
+	c.init(w, req, map[string]string{})
+	txt := ""
+	for i := 0; i < 5001; i++ {
+		txt = txt + "a"
+	}
+	c.RenderRawJSON(200, []byte(txt))
+	assertEqual(t, []string{"application/json; charset=utf-8"}, w.HeaderMap["Content-Type"])
+	assertEqual(t, []string{"gzip"}, w.HeaderMap["Content-Encoding"])
+	assertEqual(t, 200, w.Code)
+	assertEqual(t, 45, len(w.Body.Bytes()))
+}
+
 func BenchmarkRenderJSONPlain(b *testing.B) {
 	req := newRequest("GET", "http://localhost", "{}")
 	w := newRecorder()

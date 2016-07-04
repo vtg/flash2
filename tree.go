@@ -21,42 +21,67 @@ type match struct {
 
 type routes map[string]*route
 
+type paramsMap struct {
+	Map map[string]string
+}
+
+func (p *paramsMap) add(k, v string) {
+	if p.Map == nil {
+		p.Map = make(map[string]string)
+	}
+	p.Map[k] = v
+}
+
 // match returns route if found and route params
 func (l routes) match(meth, s string) http.Handler {
-	keys := strings.Split(s, "/")
-	// fmt.Println("2:", meth, s, keys)
-	params := make(map[string]string)
-
-	root, ok := l[meth]
-	if !ok {
+	root := l[meth]
+	if root == nil {
 		return nil
 	}
 
-	for idx, key := range keys {
-		if key != "" {
-			r, ok := root.routes[key]
-			if !ok {
-				r, ok = root.routes["*"]
-				if !ok {
-					r, ok = root.routes["**"]
-					if ok {
-						params[r.paramName] = strings.Join(keys[idx:], "/")
-						root = r
-						break
+	params := paramsMap{}
+	idx := 0
+	ln := len(s)
+
+	for i := 0; i < ln; i++ {
+		var part string
+		var partFound bool
+
+		if i == ln-1 && s[i] != '/' {
+			part = s[idx:]
+			partFound = true
+		} else if s[i] == '/' {
+			part = s[idx:i]
+			partFound = true
+		}
+
+		if partFound {
+			if part != "" {
+				r := root.routes[part]
+				if r == nil {
+					r = root.routes["*"]
+					if r != nil {
+						params.add(r.paramName, part)
+					} else {
+						r = root.routes["**"]
+						if r != nil {
+							params.add(r.paramName, s[idx:])
+							root = r
+							break
+						}
 					}
 				}
-				if r != nil {
-					params[r.paramName] = key
+				root = r
+				if root == nil {
+					break
 				}
 			}
-			root = r
-			if root == nil {
-				break
-			}
+			idx = i + 1
 		}
 	}
+
 	if root != nil && root.f != nil {
-		return root.f(params)
+		return root.f(params.Map)
 	}
 
 	return nil

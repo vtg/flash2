@@ -44,7 +44,9 @@ func setBanchMatch() *Router {
 	p := r.PathPrefix("/api")
 	for i := 0; i <= 100; i++ {
 		n := fmt.Sprintf("/pages%d/:id", i)
+		n1 := fmt.Sprintf("/files%d/@file", i)
 		p.HandleFunc(n, HandlerForTest)
+		p.HandleFunc(n1, HandlerForTest)
 
 	}
 	return r
@@ -68,5 +70,12 @@ func BenchmarkMatchNotFound(b *testing.B) {
 	r := setBanchMatch()
 	for n := 0; n < b.N; n++ {
 		r.routes.match("GET", "/api/pag/1")
+	}
+}
+
+func BenchmarkMatchGlobal(b *testing.B) {
+	r := setBanchMatch()
+	for n := 0; n < b.N; n++ {
+		r.routes.match("GET", "/api/files12/very/long/path/to/file.txt")
 	}
 }

@@ -98,7 +98,6 @@ func (c *Ctx) init(w http.ResponseWriter, req *http.Request, params map[string]s
 	c.Req = req
 	c.IP = c.ip()
 	c.Params = params
-	c.vars = make(map[string]interface{})
 }
 
 // ip returns IP address from client
@@ -135,11 +134,17 @@ func (c *Ctx) Param(k string) string {
 
 // SetVar set session variable
 func (c *Ctx) SetVar(k string, v interface{}) {
+	if c.vars == nil {
+		c.vars = make(map[string]interface{})
+	}
 	c.vars[k] = v
 }
 
 // Var returns session variable
 func (c *Ctx) Var(k string) interface{} {
+	if c.vars == nil {
+		return nil
+	}
 	return c.vars[k]
 }
 

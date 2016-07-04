@@ -36,17 +36,17 @@ func TestBody(t *testing.T) {
 
 func TestIP(t *testing.T) {
 	req := newRequest("GET", "http://localhost/?p1=1&p2=2", "{}")
-	c := Ctx{}
-	c.init(httpWriter, req, map[string]string{})
+	c := Ctx{Req: req}
+	c.setIP()
 	assertEqual(t, "", c.IP)
-	req.RemoteAddr = "127.0.0.1:5544"
-	c.init(httpWriter, req, map[string]string{})
+	c.Req.RemoteAddr = "127.0.0.1:5544"
+	c.setIP()
 	assertEqual(t, "127.0.0.1", c.IP)
-	req.Header.Add("X-Real-IP", "10.0.0.2")
-	c.init(httpWriter, req, map[string]string{})
+	c.Req.Header.Add("X-Real-IP", "10.0.0.2")
+	c.setIP()
 	assertEqual(t, "10.0.0.2", c.IP)
-	req.Header.Add("X-Forwarded-For", "10.0.0.1")
-	c.init(httpWriter, req, map[string]string{})
+	c.Req.Header.Add("X-Forwarded-For", "10.0.0.1")
+	c.setIP()
 	assertEqual(t, "10.0.0.1", c.IP)
 }
 
@@ -56,7 +56,7 @@ func BenchmarkExtractIPAddr(b *testing.B) {
 	c.Req.RemoteAddr = "127.0.0.1:5544"
 
 	for n := 0; n < b.N; n++ {
-		c.ip()
+		c.setIP()
 	}
 }
 

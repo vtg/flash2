@@ -109,7 +109,12 @@ func (c *Ctx) ip() string {
 	if ip := c.Header("X-Real-IP"); ip != "" {
 		return ip
 	}
-	return strings.Split(c.Req.RemoteAddr, ":")[0]
+	for i := 0; i < len(c.Req.RemoteAddr); i++ {
+		if c.Req.RemoteAddr[i] == ':' {
+			return c.Req.RemoteAddr[0:i]
+		}
+	}
+	return ""
 }
 
 // LoadJSONRequest extracting JSON request by key

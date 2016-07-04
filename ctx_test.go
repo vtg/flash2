@@ -1,6 +1,9 @@
 package flash2
 
-import "testing"
+import (
+	"errors"
+	"testing"
+)
 
 func TestQueryParams(t *testing.T) {
 	req := newRequest("GET", "http://localhost/?p1=1&p2=2", "{}")
@@ -55,16 +58,22 @@ func TestRenderJSONPlain(t *testing.T) {
 	assertEqual(t, `"test"`, w.Body.String())
 }
 
+type errJSONTest struct{}
+
+func (errJSONTest) MarshalJSON() ([]byte, error) {
+	return []byte{}, errors.New("incorrect JSON")
+}
+
 func TestRenderJSONWithError(t *testing.T) {
 	req := newRequest("GET", "http://localhost", "{}")
 	w := newRecorder()
 	c := Ctx{}
 	c.init(w, req, map[string]string{})
-	c.RenderJSON(200, map[int]string{1: "test"})
+	c.RenderJSON(200, errJSONTest{})
 	assertEqual(t, []string{"application/json; charset=utf-8"}, w.HeaderMap["Content-Type"])
 	assertNil(t, w.HeaderMap["Content-Encoding"])
 	assertEqual(t, 500, w.Code)
-	assertEqual(t, `{"errors":{"message":["json: unsupported type: map[int]string"]}}`, w.Body.String())
+	assertEqual(t, `{"errors":{"message":["json: error calling MarshalJSON for type flash2.errJSONTest: incorrect JSON"]}}`, w.Body.String())
 }
 
 func TestRenderJSONGzipPlain(t *testing.T) {

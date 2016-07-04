@@ -5,18 +5,11 @@ import (
 	"strings"
 )
 
-// type routes map[string]routes
-
 // route contains part of route
 type route struct {
 	paramName string
 	routes    routes
 	f         handFunc
-}
-
-type match struct {
-	handler http.Handler
-	// params  map[string]string
 }
 
 type routes map[string]*route

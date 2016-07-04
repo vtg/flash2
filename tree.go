@@ -32,32 +32,31 @@ func (l routes) match(meth, s string) http.Handler {
 		return nil
 	}
 
-	r := root
 	for idx, key := range keys {
 		if key != "" {
-			r1, ok := r.routes[key]
+			r, ok := root.routes[key]
 			if !ok {
-				r1, ok = r.routes["*"]
+				r, ok = root.routes["*"]
 				if !ok {
-					r1, ok = r.routes["**"]
+					r, ok = root.routes["**"]
 					if ok {
-						params[r1.paramName] = strings.Join(keys[idx:], "/")
-						r = r1
+						params[r.paramName] = strings.Join(keys[idx:], "/")
+						root = r
 						break
 					}
 				}
-				if r1 != nil {
-					params[r1.paramName] = key
+				if r != nil {
+					params[r.paramName] = key
 				}
 			}
-			r = r1
-			if r == nil {
+			root = r
+			if root == nil {
 				break
 			}
 		}
 	}
-	if r != nil && r.f != nil {
-		return r.f(params)
+	if root != nil && root.f != nil {
+		return root.f(params)
 	}
 
 	return nil

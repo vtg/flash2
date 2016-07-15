@@ -13,7 +13,12 @@ type handFunc func(map[string]string) http.Handler
 
 // NewRouter creates new Router
 func NewRouter() *Router {
-	return &Router{routes: make(routes), LogWriter: os.Stdout, LogHTTP: true}
+	return &Router{
+		routes:          make(routes),
+		LogWriter:       os.Stdout,
+		LogHTTP:         true,
+		HandlerNotFound: http.NotFoundHandler(),
+	}
 }
 
 // Router stroring app routes structure
@@ -29,6 +34,8 @@ type Router struct {
 	// LogWriter log writer interface
 	LogWriter io.Writer
 	LogHTTP   bool
+
+	HandlerNotFound http.Handler
 }
 
 // NewRoute registers an empty route.
@@ -92,7 +99,7 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	if h != nil {
 		h.ServeHTTP(w, req)
 	} else {
-		http.NotFoundHandler().ServeHTTP(w, req)
+		r.HandlerNotFound.ServeHTTP(w, req)
 	}
 }
 

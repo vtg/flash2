@@ -8,6 +8,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 type jsonErrors struct {
@@ -32,10 +33,18 @@ type action struct {
 	f           handlerFunc
 }
 
+var (
+	ctxPool = sync.Pool{
+		New: func() interface{} {
+			return &Ctx{}
+		},
+	}
+)
+
 // handleRoute returns http handler function to process route
 func handleRoute(a action, params map[string]string, funcs []MWFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
-		c := &Ctx{}
+		c := ctxPool.Get().(*Ctx)
 		c.init(w, req, params)
 		c.Action = a.action
 		c.Controller = a.ctr
@@ -47,6 +56,8 @@ func handleRoute(a action, params map[string]string, funcs []MWFunc) http.Handle
 		}
 
 		a.f(c)
+		c.clear()
+		ctxPool.Put(c)
 	}
 }
 
@@ -98,6 +109,17 @@ func (c *Ctx) init(w http.ResponseWriter, req *http.Request, params map[string]s
 	c.Req = req
 	c.Params = params
 	c.setIP()
+}
+
+// initCtx initializing Ctx structure
+func (c *Ctx) clear() {
+	c.W = nil
+	c.Req = nil
+	c.Params = nil
+	c.IP = ""
+	c.Action = ""
+	c.Controller = ""
+	c.vars = nil
 }
 
 // setIP extracting IP address from request

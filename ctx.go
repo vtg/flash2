@@ -42,10 +42,10 @@ var (
 )
 
 // handleRoute returns http handler function to process route
-func handleRoute(a action, params map[string]string, funcs []MWFunc) http.HandlerFunc {
+func handleRoute(a action, p params, funcs []MWFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		c := ctxPool.Get().(*Ctx)
-		c.init(w, req, params)
+		c.init(w, req, p)
 		c.Action = a.action
 		c.Controller = a.ctr
 
@@ -89,7 +89,7 @@ func (u URLParams) Bool(k string) bool {
 type Ctx struct {
 	Req    *http.Request
 	W      http.ResponseWriter
-	Params URLParams
+	Params params
 
 	IP         string
 	Action     string
@@ -104,10 +104,10 @@ type Ctx struct {
 }
 
 // initCtx initializing Ctx structure
-func (c *Ctx) init(w http.ResponseWriter, req *http.Request, params map[string]string) {
+func (c *Ctx) init(w http.ResponseWriter, req *http.Request, p params) {
 	c.W = w
 	c.Req = req
-	c.Params = params
+	c.Params = p
 	c.setIP()
 }
 
@@ -151,7 +151,12 @@ func (c *Ctx) QueryParam(s string) string {
 
 // Param get URL param
 func (c *Ctx) Param(k string) string {
-	return c.Params[k]
+	for _, v := range c.Params {
+		if v[0] == k {
+			return v[1]
+		}
+	}
+	return ""
 }
 
 // SetVar set session variable

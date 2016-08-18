@@ -8,7 +8,7 @@ import (
 func TestQueryParams(t *testing.T) {
 	req := newRequest("GET", "http://localhost/?p1=1&p2=2", "{}")
 	c := Ctx{}
-	c.init(httpWriter, req, map[string]string{})
+	c.init(httpWriter, req, params{})
 	assertEqual(t, "1", c.QueryParam("p1"))
 	assertEqual(t, "2", c.QueryParam("p2"))
 	assertEqual(t, "", c.QueryParam("p3"))
@@ -17,7 +17,7 @@ func TestQueryParams(t *testing.T) {
 func TestHeader(t *testing.T) {
 	req := newRequest("GET", "http://localhost", "{}")
 	c := Ctx{}
-	c.init(httpWriter, req, map[string]string{})
+	c.init(httpWriter, req, params{})
 	assertEqual(t, "token1", c.Header("X-API-Token"))
 	assertEqual(t, "", c.Header("X-API-Token1"))
 }
@@ -25,7 +25,7 @@ func TestHeader(t *testing.T) {
 func TestBody(t *testing.T) {
 	req := newRequest("GET", "http://localhost/", "{\"id\":2}")
 	c := Ctx{}
-	c.init(httpWriter, req, map[string]string{})
+	c.init(httpWriter, req, params{})
 	type in struct {
 		ID int
 	}
@@ -63,7 +63,7 @@ func BenchmarkExtractIPAddr(b *testing.B) {
 func BenchmarkLoadJSONRequest(b *testing.B) {
 	c := Ctx{}
 	for n := 0; n < b.N; n++ {
-		c.init(httpWriter, newRequest("GET", "http://localhost/", "{\"id\":2}"), map[string]string{})
+		c.init(httpWriter, newRequest("GET", "http://localhost/", "{\"id\":2}"), params{})
 		type in struct {
 			ID int
 		}
@@ -76,7 +76,7 @@ func TestRenderJSONPlain(t *testing.T) {
 	req := newRequest("GET", "http://localhost", "{}")
 	w := newRecorder()
 	c := Ctx{}
-	c.init(w, req, map[string]string{})
+	c.init(w, req, params{})
 	c.RenderJSON(200, "test")
 	assertEqual(t, []string{"application/json; charset=utf-8"}, w.HeaderMap["Content-Type"])
 	assertNil(t, w.HeaderMap["Content-Encoding"])
@@ -94,7 +94,7 @@ func TestRenderJSONWithError(t *testing.T) {
 	req := newRequest("GET", "http://localhost", "{}")
 	w := newRecorder()
 	c := Ctx{}
-	c.init(w, req, map[string]string{})
+	c.init(w, req, params{})
 	c.RenderJSON(200, errJSONTest{})
 	assertEqual(t, []string{"application/json; charset=utf-8"}, w.HeaderMap["Content-Type"])
 	assertNil(t, w.HeaderMap["Content-Encoding"])
@@ -107,7 +107,7 @@ func TestRenderJSONGzipPlain(t *testing.T) {
 	req.Header.Set("Accept-Encoding", "gzip")
 	w := newRecorder()
 	c := Ctx{}
-	c.init(w, req, map[string]string{})
+	c.init(w, req, params{})
 	txt := ""
 	for i := 0; i < 4998; i++ {
 		txt = txt + "a"
@@ -124,7 +124,7 @@ func TestRenderJSONGzip(t *testing.T) {
 	req.Header.Set("Accept-Encoding", "gzip")
 	w := newRecorder()
 	c := Ctx{}
-	c.init(w, req, map[string]string{})
+	c.init(w, req, params{})
 	txt := ""
 	for i := 0; i < 5001; i++ {
 		txt = txt + "a"
@@ -142,7 +142,7 @@ func TestRenderRawJSONPlain(t *testing.T) {
 	req := newRequest("GET", "http://localhost", "{}")
 	w := newRecorder()
 	c := Ctx{}
-	c.init(w, req, map[string]string{})
+	c.init(w, req, params{})
 	c.GZipEnabled = true
 	c.GZipMinBytes = 5000
 	c.RenderRawJSON(200, []byte(`{"a":"b"}`))
@@ -157,7 +157,7 @@ func TestRenderRawJSONGzip(t *testing.T) {
 	req.Header.Set("Accept-Encoding", "gzip")
 	w := newRecorder()
 	c := Ctx{}
-	c.init(w, req, map[string]string{})
+	c.init(w, req, params{})
 	txt := ""
 	for i := 0; i < 5001; i++ {
 		txt = txt + "a"
@@ -175,7 +175,7 @@ func BenchmarkRenderJSONPlain(b *testing.B) {
 	req := newRequest("GET", "http://localhost", "{}")
 	w := newRecorder()
 	c := Ctx{}
-	c.init(w, req, map[string]string{})
+	c.init(w, req, params{})
 	c.GZipEnabled = true
 	c.GZipMinBytes = 5000
 	for n := 0; n < b.N; n++ {
@@ -188,7 +188,7 @@ func BenchmarkRenderJSONGziped(b *testing.B) {
 	req.Header.Set("Accept-Encoding", "gzip")
 	w := newRecorder()
 	c := Ctx{}
-	c.init(w, req, map[string]string{})
+	c.init(w, req, params{})
 	c.GZipEnabled = true
 	c.GZipMinBytes = 5000
 	txt := ""
@@ -204,7 +204,7 @@ func TestRenderJSONError(t *testing.T) {
 	req := newRequest("GET", "http://localhost", "{}")
 	w := newRecorder()
 	c := Ctx{}
-	c.init(w, req, map[string]string{})
+	c.init(w, req, params{})
 	c.GZipEnabled = true
 	c.GZipMinBytes = 5000
 	c.RenderJSONError(400, "test error")

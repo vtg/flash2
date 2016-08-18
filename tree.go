@@ -18,16 +18,7 @@ type route struct {
 
 type routes map[string]*route
 
-type paramsMap struct {
-	Map map[string]string
-}
-
-func (p *paramsMap) add(k, v string) {
-	if p.Map == nil {
-		p.Map = make(map[string]string)
-	}
-	p.Map[k] = v
-}
+type params [][2]string
 
 // match returns route if found and route params
 func (l routes) match(meth, s string) http.Handler {
@@ -78,11 +69,12 @@ func (l routes) match(meth, s string) http.Handler {
 	}
 
 	if root != nil && root.match != nil {
-		params := paramsMap{}
+		p := make(params, len(root.match.params))
 		for i, v := range root.match.params {
-			params.add(v, pars[i])
+			p[i][0] = v
+			p[i][1] = pars[i]
 		}
-		return root.match.f(params.Map)
+		return root.match.f(p)
 	}
 
 	return nil

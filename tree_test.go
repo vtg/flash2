@@ -8,7 +8,7 @@ import (
 
 func HandlerForTest(w http.ResponseWriter, req *http.Request) {}
 
-func testH(p map[string]string) http.Handler {
+func testH(p params) http.Handler {
 	return http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { w.Write([]byte("test")) }))
 }
 

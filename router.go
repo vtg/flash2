@@ -9,7 +9,7 @@ import (
 	"github.com/gorilla/handlers"
 )
 
-type handFunc func(map[string]string) http.Handler
+type handFunc func(params) http.Handler
 
 // NewRouter creates new Router
 func NewRouter() *Router {

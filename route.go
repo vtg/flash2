@@ -21,7 +21,7 @@ func (r *Route) NewRoute(prefix string) *Route {
 
 // HandleFunc setting function to handle route
 func (r *Route) HandleFunc(s string, f func(http.ResponseWriter, *http.Request)) {
-	hf := func(params map[string]string) http.Handler { return http.Handler(http.HandlerFunc(f)) }
+	hf := func(p params) http.Handler { return http.Handler(http.HandlerFunc(f)) }
 	r.router.routes.assign("GET", cleanPath(r.prefix+s), hf)
 }
 
@@ -39,8 +39,8 @@ func (r *Route) Route(method, path string, f handlerFunc, funcs ...MWFunc) {
 }
 
 func (r *Route) route(method, path string, a action, funcs []MWFunc) {
-	hf := func(params map[string]string) http.Handler {
-		return http.Handler(http.HandlerFunc(handleRoute(a, params, funcs)))
+	hf := func(p params) http.Handler {
+		return http.Handler(http.HandlerFunc(handleRoute(a, p, funcs)))
 	}
 	r.router.routes.assign(method, cleanPath(r.prefix+path), hf)
 }
@@ -121,13 +121,13 @@ func (r *Route) Controller(path string, controller interface{}, funcs ...MWFunc)
 //  - preferGzip specifying if it should look for gzipped file version
 //
 func (r *Route) FileServer(path string, b ...bool) {
-	hf := func(params map[string]string) http.Handler { return fileServer(path, b) }
+	hf := func(p params) http.Handler { return fileServer(path, b) }
 	r.router.routes.assign("GET", cleanPath(r.prefix+"/@file"), hf)
 }
 
 // Handle adding new route with handler
 func (r *Route) Handle(path string, handler http.Handler) {
-	hf := func(params map[string]string) http.Handler { return handler }
+	hf := func(p params) http.Handler { return handler }
 	r.router.routes.assign("GET", cleanPath(r.prefix+path), hf)
 }
 

@@ -14,13 +14,22 @@ func testH(p map[string]string) http.Handler {
 
 func TestTreeAssign(t *testing.T) {
 	r := NewRouter()
-	r.routes.assign("GET", "/api/pages", testH)
+	r.routes.assign("GET", "/api/pages/:id", testH)
+	r.routes.assign("GET", "/api/pages/:wsid/sub/:id", testH)
 	l := r.routes["GET"]
-	assertNil(t, l.f)
+	assertNil(t, l.match)
 	l = l.routes["api"]
-	assertNil(t, l.f)
+	assertNil(t, l.match)
 	l = l.routes["pages"]
-	assertNotNil(t, l.f)
+	assertNil(t, l.match)
+	l = l.routes["*"]
+	assertNotNil(t, l.match.f)
+	assertEqual(t, []string{"id"}, l.match.params)
+	l = l.routes["sub"]
+	assertNil(t, l.match)
+	l = l.routes["*"]
+	assertNotNil(t, l.match.f)
+	assertEqual(t, []string{"wsid", "id"}, l.match.params)
 }
 
 func TestTreeMatch(t *testing.T) {
@@ -28,6 +37,7 @@ func TestTreeMatch(t *testing.T) {
 	r.routes.assign("GET", "/api/pages", testH)
 	r.routes.assign("GET", "/api/pages/:id", testH)
 	r.routes.assign("GET", "/api/pages/:id/hello", testH)
+	r.routes.assign("GET", "/api/page/:pid/sub/:id/hello", testH)
 	r.routes.assign("GET", "/images/@file", testH)
 	assertNotNil(t, r.routes.match("GET", "/api/pages"))
 	assertNil(t, r.routes.match("POST", "/api/pages"))
@@ -50,6 +60,14 @@ func setBanchMatch() *Router {
 
 	}
 	return r
+}
+
+func BenchmarkMatchFoundSub(b *testing.B) {
+	r := NewRouter()
+	r.routes.assign("GET", "/api/page/:pid/sub/:id/hello", testH)
+	for n := 0; n < b.N; n++ {
+		r.routes.match("GET", "/api/page/1/sub/2/hello")
+	}
 }
 
 func BenchmarkMatchFound1st(b *testing.B) {

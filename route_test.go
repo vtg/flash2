@@ -79,6 +79,30 @@ func TestFiles(t *testing.T) {
 	assertEqual(t, "public/image.png", w.Body.String())
 }
 
+func SubTestGET(ctx *Ctx) {
+	ctx.RenderJSON(200, JSON{
+		"id":   ctx.Param("id"),
+		"wsid": ctx.Param("wsid"),
+	})
+}
+
+func TestSubLinks(t *testing.T) {
+	r := NewRouter()
+	p := r.PathPrefix("/api")
+	p.Get("/pages/:id", SubTestGET)
+	p.Get("/pages/:wsid/sub/:id", SubTestGET)
+
+	req := newRequest("GET", "http://localhost/api/pages/1", "{}")
+	w := newRecorder()
+	r.ServeHTTP(w, req)
+	assertEqual(t, `{"id":"1","wsid":""}`, w.Body.String())
+
+	req = newRequest("GET", "http://localhost/api/pages/1/sub/2", "{}")
+	w = newRecorder()
+	r.ServeHTTP(w, req)
+	assertEqual(t, `{"id":"2","wsid":"1"}`, w.Body.String())
+}
+
 func TestController(t *testing.T) {
 	r := NewRouter()
 	p := r.PathPrefix("/api")

@@ -5,11 +5,15 @@ import (
 	"strings"
 )
 
+type match struct {
+	f      handFunc
+	params []string
+}
+
 // route contains part of route
 type route struct {
-	paramName string
-	routes    routes
-	f         handFunc
+	routes routes
+	match  *match
 }
 
 type routes map[string]*route
@@ -32,7 +36,7 @@ func (l routes) match(meth, s string) http.Handler {
 		return nil
 	}
 
-	params := paramsMap{}
+	pars := make([]string, 0, 2)
 	idx := 0
 	ln := len(s)
 
@@ -54,11 +58,11 @@ func (l routes) match(meth, s string) http.Handler {
 				if r == nil {
 					r = root.routes["*"]
 					if r != nil {
-						params.add(r.paramName, part)
+						pars = append(pars, part)
 					} else {
 						r = root.routes["**"]
 						if r != nil {
-							params.add(r.paramName, s[idx:])
+							pars = append(pars, s[idx:])
 							root = r
 							break
 						}
@@ -73,8 +77,12 @@ func (l routes) match(meth, s string) http.Handler {
 		}
 	}
 
-	if root != nil && root.f != nil {
-		return root.f(params.Map)
+	if root != nil && root.match != nil {
+		params := paramsMap{}
+		for i, v := range root.match.params {
+			params.add(v, pars[i])
+		}
+		return root.match.f(params.Map)
 	}
 
 	return nil
@@ -83,7 +91,7 @@ func (l routes) match(meth, s string) http.Handler {
 // assign adds route structure to routes
 func (l routes) assign(meth, path string, f handFunc) {
 	parts := strings.Split(path, "/")
-
+	m := match{f: f}
 	if _, ok := l[meth]; !ok {
 		l[meth] = &route{routes: routes{}}
 	}
@@ -92,8 +100,11 @@ func (l routes) assign(meth, path string, f handFunc) {
 	for _, key := range parts {
 		if key != "" {
 			name, param := keyParams(key)
+			if param != "" {
+				m.params = append(m.params, param)
+			}
 			if _, ok := r.routes[name]; !ok {
-				r.routes[name] = &route{paramName: param, routes: routes{}}
+				r.routes[name] = &route{routes: routes{}}
 			}
 			r = r.routes[name]
 			if name == "**" {
@@ -101,7 +112,7 @@ func (l routes) assign(meth, path string, f handFunc) {
 			}
 		}
 	}
-	r.f = f
+	r.match = &m
 }
 
 func keyParams(key string) (name, param string) {

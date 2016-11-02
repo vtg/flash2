@@ -35,12 +35,24 @@ func (r *Route) HandleFunc(s string, f func(http.ResponseWriter, *http.Request))
 //  - AuthFunc is middleware function that implements MWFunc.
 //
 func (r *Route) Route(method, path string, f handlerFunc, funcs ...MWFunc) {
-	r.route(method, path, action{f: f}, funcs)
+	r.CtrRoute(method, path, CtrAction{Func: f}, funcs)
 }
 
-func (r *Route) route(method, path string, a action, funcs []MWFunc) {
+// CtrRoute registers route for controller method
+// ex:
+//    r := api.NewRouter()
+//    api = r.PathPrefix("/api/v1")
+//    api.CtrRoute("GET","/pages/:id/comments", CtrAction{
+// 			Func: pages.Comments,
+// 			Name: 'comments',
+// 			Controller: "pages",
+// 		}, AuthFunc)
+// where
+//  - AuthFunc is middleware function that implements MWFunc.
+//
+func (r *Route) CtrRoute(method, path string, a CtrAction, funcs []MWFunc) {
 	hf := func(p params) http.Handler {
-		return http.Handler(http.HandlerFunc(handleRoute(a, p, funcs)))
+		return http.Handler(http.HandlerFunc(handleRoute(&a, p, funcs)))
 	}
 	r.router.routes.assign(method, cleanPath(r.prefix+path), hf)
 }
@@ -81,27 +93,27 @@ func (r *Route) Controller(path string, controller interface{}, funcs ...MWFunc)
 	for _, name := range meths {
 		m := t.MethodByName(name).Interface()
 		if f, ok := m.(func(*Ctx)); ok {
-			rAct := action{f: f, action: name, ctr: ctr.Name()}
+			rAct := CtrAction{Func: f, Name: name, Controller: ctr.Name()}
 			switch name {
 			case "Index":
-				r.route("GET", path, rAct, funcs)
+				r.CtrRoute("GET", path, rAct, funcs)
 			case "Create":
-				r.route("POST", cleanPath(path), rAct, funcs)
+				r.CtrRoute("POST", cleanPath(path), rAct, funcs)
 			case "Show":
-				r.route("GET", cleanPath(path+"/:id"), rAct, funcs)
+				r.CtrRoute("GET", cleanPath(path+"/:id"), rAct, funcs)
 			case "Update":
 				cp := cleanPath(path + "/:id")
-				r.route("POST", cp, rAct, funcs)
-				r.route("PATCH", cp, rAct, funcs)
-				r.route("PUT", cp, rAct, funcs)
+				r.CtrRoute("POST", cp, rAct, funcs)
+				r.CtrRoute("PATCH", cp, rAct, funcs)
+				r.CtrRoute("PUT", cp, rAct, funcs)
 			case "Delete":
-				r.route("DELETE", cleanPath(path+"/:id"), rAct, funcs)
+				r.CtrRoute("DELETE", cleanPath(path+"/:id"), rAct, funcs)
 			default:
 				for _, v := range httpMethods {
 					if strings.HasSuffix(name, v) {
 						act := strings.ToLower(strings.TrimSuffix(name, v))
-						r.route(v, cleanPath(path+"/"+act), rAct, funcs)
-						r.route(v, cleanPath(path+"/:id/"+act), rAct, funcs)
+						r.CtrRoute(v, cleanPath(path+"/"+act), rAct, funcs)
+						r.CtrRoute(v, cleanPath(path+"/:id/"+act), rAct, funcs)
 					}
 				}
 			}

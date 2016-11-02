@@ -28,9 +28,11 @@ type handlerFunc func(*Ctx)
 // JSON shortcut for map[string]interface{}
 type JSON map[string]interface{}
 
-type action struct {
-	ctr, action string
-	f           handlerFunc
+// CtrAction type for CtrRoute
+type CtrAction struct {
+	Func       handlerFunc
+	Name       string
+	Controller string
 }
 
 var (
@@ -42,12 +44,12 @@ var (
 )
 
 // handleRoute returns http handler function to process route
-func handleRoute(a action, p params, funcs []MWFunc) http.HandlerFunc {
+func handleRoute(a *CtrAction, p params, funcs []MWFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		c := ctxPool.Get().(*Ctx)
 		c.init(w, req, p)
-		c.Action = a.action
-		c.Controller = a.ctr
+		c.Action = a.Name
+		c.Controller = a.Controller
 
 		for _, f := range funcs {
 			if ok := f(c); !ok {
@@ -55,7 +57,7 @@ func handleRoute(a action, p params, funcs []MWFunc) http.HandlerFunc {
 			}
 		}
 
-		a.f(c)
+		a.Func(c)
 		c.clear()
 		ctxPool.Put(c)
 	}
